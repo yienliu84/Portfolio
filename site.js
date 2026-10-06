@@ -121,7 +121,7 @@ function decodeMeshes(key) {
       positions[i*3+2] = min[2] + dv.getUint16(offset,true) * scale[2]; offset += 2;
     }
     const indexCount = triangleCount * 3;
-    const indices = new Uint32Array(indexCount);
+    const indices = new Uint16Array(indexCount);
     for (let i=0; i<indexCount; i++) { indices[i] = dv.getUint16(offset,true); offset += 2; }
 
     const geometry = new THREE.BufferGeometry();
@@ -240,7 +240,7 @@ function initProjectViewers() {
       observer.unobserve(host);
     });
   }, { rootMargin:'240px 0px' });
-  qsa('.model-viewer').forEach(el => observer.observe(el));
+  qsa('.model-viewer[data-model]').forEach(el => observer.observe(el));
 }
 
 const dialog = qs('#projectDialog');
