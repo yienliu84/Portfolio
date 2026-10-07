@@ -4,6 +4,30 @@ import { inflate } from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm';
 
 const CONTENT = window.PORTFOLIO_CONTENT;
 const MODEL_PARTS = window.PORTFOLIO_MODEL_PARTS || {};
+const MODEL_DATA_V2 = window.PORTFOLIO_MODEL_DATA_V2 || {};
+const MODEL_KEYS = {
+  manta: 'manta',
+  merv: 'merv-unit',
+  rover: 'rover',
+  ivo: 'ivo',
+  mocap: 'mocap'
+};
+const MERV_MODELS = [
+  { key: 'merv-unit', label: 'Full Unit' },
+  { key: 'merv-gearbox', label: 'Gear Box Assembly' },
+  { key: 'merv-driveshaft', label: 'Drive Shaft Assembly' },
+  { key: 'merv-tread', label: 'Tread Link' }
+];
+const VIEW_PRESETS = {
+  manta: [1.18, 0.52, 1.38],
+  rover: [1.05, 0.76, 1.28],
+  'merv-unit': [1.16, 0.72, 1.12],
+  'merv-gearbox': [1.18, 0.82, 1.08],
+  'merv-driveshaft': [1.38, 0.64, 0.96],
+  'merv-tread': [1.12, 0.66, 1.30],
+  ivo: [1.15, 0.40, 1.35],
+  mocap: [1.18, 0.82, 1.22]
+};
 const viewerInstances = new Set();
 const modelCache = new Map();
 
@@ -100,7 +124,7 @@ function renderContent() {
 
 function decodeMeshes(key) {
   if (modelCache.has(key)) return modelCache.get(key);
-  const encoded = (MODEL_PARTS[key] || []).join('');
+  const encoded = MODEL_DATA_V2[key] || (MODEL_PARTS[key] || []).join('');
   if (!encoded) throw new Error(`Missing model data for ${key}`);
   const compressed = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
   const raw = inflate(compressed);
@@ -157,6 +181,12 @@ function disposeViewer(viewer) {
   viewerInstances.delete(viewer);
 }
 
+function destroyViewer(viewer) {
+  if (!viewer) return;
+  if (typeof viewer.disposeAll === 'function') viewer.disposeAll();
+  else disposeViewer(viewer);
+}
+
 function createViewer(host, key, {modal=false}={}) {
   if (host.dataset.ready === 'true') return host._viewer;
   host.dataset.ready = 'true';
@@ -194,7 +224,8 @@ function createViewer(host, key, {modal=false}={}) {
   const size = box.getSize(new THREE.Vector3());
   const radius = Math.max(size.x,size.y,size.z) || 1;
   const distance = radius / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov/2))) * 1.28;
-  const viewDir = new THREE.Vector3(1.15, 0.72, 1.35).normalize();
+  const preset = VIEW_PRESETS[key] || [1.15, 0.72, 1.35];
+  const viewDir = new THREE.Vector3(...preset).normalize();
   camera.position.copy(viewDir.multiplyScalar(distance));
   camera.near = Math.max(distance / 1000, 0.001);
   camera.far = distance * 100;
@@ -230,12 +261,63 @@ function createViewer(host, key, {modal=false}={}) {
   return viewer;
 }
 
+function createMervViewer(host, {modal=false}={}) {
+  let index = 0;
+  let currentViewer = null;
+  let disposed = false;
+
+  const render = () => {
+    if (disposed) return;
+    if (currentViewer) disposeViewer(currentViewer);
+    host.dataset.ready = 'false';
+    host.innerHTML = '';
+    const item = MERV_MODELS[index];
+    currentViewer = createViewer(host, item.key, {modal});
+
+    const switcher = document.createElement('div');
+    switcher.className = 'model-switcher';
+    switcher.innerHTML = `
+      <button type="button" data-model-prev aria-label="Previous MERV model">←</button>
+      <span><small>MERV model</small><strong>${esc(item.label)}</strong></span>
+      <button type="button" data-model-next aria-label="Next MERV model">→</button>`;
+    host.appendChild(switcher);
+
+    switcher.querySelector('[data-model-prev]').addEventListener('click', e => {
+      e.stopPropagation();
+      index = (index + MERV_MODELS.length - 1) % MERV_MODELS.length;
+      render();
+    });
+    switcher.querySelector('[data-model-next]').addEventListener('click', e => {
+      e.stopPropagation();
+      index = (index + 1) % MERV_MODELS.length;
+      render();
+    });
+  };
+
+  render();
+  return {
+    disposeAll() {
+      if (disposed) return;
+      disposed = true;
+      disposeViewer(currentViewer);
+      currentViewer = null;
+      host.innerHTML = '';
+      host.dataset.ready = 'false';
+    }
+  };
+}
+
+function mountProjectViewer(host, projectKey, {modal=false}={}) {
+  if (projectKey === 'merv') return createMervViewer(host, {modal});
+  return createViewer(host, MODEL_KEYS[projectKey] || projectKey, {modal});
+}
+
 function initProjectViewers() {
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       const host = entry.target;
-      try { createViewer(host, host.dataset.model); }
+      try { mountProjectViewer(host, host.dataset.model); }
       catch (err) { console.error(err); host.innerHTML = '<div class="viewer-error">3D preview unavailable</div>'; }
       observer.unobserve(host);
     });
@@ -257,14 +339,14 @@ function openProject(key) {
   qs('#modalList').innerHTML = d.bullets.map(x=>`<li>${esc(x)}</li>`).join('');
   qs('#modalTags').innerHTML = tagsHtml(d.tags);
   const modalHost = qs('#modalViewer');
-  disposeViewer(modalViewer); modalViewer = null; modalHost.dataset.ready='false'; modalHost.innerHTML='<div class="viewer-loading">Loading 3D model…</div>';
+  destroyViewer(modalViewer); modalViewer = null; modalHost.dataset.ready='false'; modalHost.innerHTML='<div class="viewer-loading">Loading 3D model…</div>';
   dialog.showModal(); document.body.style.overflow='hidden';
   requestAnimationFrame(() => {
-    try { modalViewer = createViewer(modalHost, key, {modal:true}); }
+    try { modalViewer = mountProjectViewer(modalHost, key, {modal:true}); }
     catch (err) { console.error(err); modalHost.innerHTML='<div class="viewer-error">3D preview unavailable</div>'; }
   });
 }
-function closeProject(){ disposeViewer(modalViewer); modalViewer=null; dialog.close(); document.body.style.overflow=''; }
+function closeProject(){ destroyViewer(modalViewer); modalViewer=null; dialog.close(); document.body.style.overflow=''; }
 
 function initInteractions() {
   qsa('[data-open-project]').forEach(btn => btn.addEventListener('click', () => openProject(btn.dataset.openProject)));
