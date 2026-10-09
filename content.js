@@ -122,7 +122,7 @@ window.PORTFOLIO_CONTENT = {
         "IAM3D · Project Manager",
         "May 2026 — Present"
       ],
-      "title": "Modular Educational Robotic Vehicle",
+      "title": "Modular Educational Robotic Vehicle (M.E.R.V.)",
       "summary": "FDM-printed modular robotics platform with a tracked drivetrain, magnetic clip chassis, and distributed embedded architecture.",
       "cardTags": [
         "DfAM",
@@ -156,20 +156,6 @@ window.PORTFOLIO_CONTENT = {
           "src": "assets/photos/merv-original-1.svg",
           "alt": "Exploded modular chassis and clip component layout",
           "title": "Exploded modular chassis and clip component layout",
-          "caption": ""
-        },
-        {
-          "id": "merv-original-2",
-          "src": "assets/photos/merv-original-2.svg",
-          "alt": "Tread driveshaft, sprockets, and herringbone gear",
-          "title": "Tread driveshaft, sprockets, and herringbone gear",
-          "caption": ""
-        },
-        {
-          "id": "merv-original-3",
-          "src": "assets/photos/merv-original-3.svg",
-          "alt": "Front view of drivetrain assembly",
-          "title": "Front view of drivetrain assembly",
           "caption": ""
         },
         {
