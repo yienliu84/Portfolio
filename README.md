@@ -8,6 +8,7 @@ Open [the portfolio editor](https://yienliu84.github.io/Portfolio/edit.html), or
 
 1. Choose a project and edit its title, summary, full description, or highlights.
 2. Cycle through its photos. Each photo has its own title, information box, and screen-reader description.
+   **Delete photo** removes the selected picture from the draft. **Undo deletion** restores deleted pictures, including their titles and captions, until the draft is published. Deletions and undo history survive a browser reload. A project can also have no photos while its text remains visible.
 3. Check the live draft preview. Drafts save in the current browser and are shown only in draft previews.
 4. To publish directly, create a fine-grained GitHub token for only this repository with **Contents: read and write**, paste it into the editor, and choose **Publish to GitHub**. Tokens are not saved in drafts and are cleared after each publish attempt.
 
