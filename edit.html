@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Edit Portfolio — Yi'en Liu</title>
-  <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="editor.css?v=4">
 </head>
 <body>
   <header class="editor-header"><a class="back" href="./">← Portfolio</a><span>Portfolio editor</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Open draft preview ↗</a></header>
@@ -33,9 +33,11 @@
         </details>
       </fieldset>
       <fieldset id="photoFields"><legend>Photo information</legend>
-        <div class="editor-photo"><img id="editorPhoto" alt=""></div>
+        <div class="editor-photo"><img id="editorPhoto" alt=""><p id="emptyPhotos" hidden>No photos for this project.</p></div>
         <div class="photo-controls"><button id="previousPhoto" type="button" aria-label="Previous photo">← Previous</button><span id="photoCount" aria-live="polite"></span><button id="nextPhoto" type="button" aria-label="Next photo">Next →</button></div>
         <div class="photo-strip" id="photoStrip" aria-label="Choose a photo"></div>
+        <div class="photo-actions"><button id="deletePhoto" class="danger" type="button">Delete photo</button><button id="undoPhoto" type="button" disabled>Undo deletion</button></div>
+        <p class="photo-help">Deletes the selected photo from this project. Publish to update the portfolio, or undo the deletion before publishing.</p>
         <label class="field"><span>Photo title</span><input id="photoTitle" data-photo-field="title" type="text"></label>
         <label class="field"><span>Information about this photo</span><textarea id="photoCaption" data-photo-field="caption" rows="5" placeholder="Describe what this picture shows, your design decisions, or the results."></textarea></label>
         <label class="field"><span>Image description for screen readers</span><textarea id="photoAlt" data-photo-field="alt" rows="2"></textarea></label>
@@ -56,6 +58,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js"></script><script src="editor.js"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=4"></script><script src="editor.js?v=4"></script>
 </body>
 </html>
