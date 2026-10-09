@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Edit Portfolio — Yi'en Liu</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <header class="editor-header"><a class="back" href="./">← Portfolio</a><span>Portfolio editor</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Open draft preview ↗</a></header>
+  <main class="editor-layout">
+    <section class="edit-panel" aria-labelledby="editorTitle">
+      <div class="eyebrow">Projects + photo captions</div>
+      <h1 id="editorTitle">Make it yours.</h1>
+      <p class="intro">Edit the text, cycle through the photos, and add a description for each picture. Drafts save on this browser as you type. Publish when you're ready to update the public portfolio.</p>
+      <p id="draftStatus" class="draft-status" role="status">Loading published content…</p>
+      <label class="field"><span>Choose a project</span><select id="projectSelect"></select></label>
+      <fieldset id="projectFields"><legend>Project text</legend>
+        <label class="field"><span>Project title</span><input id="projectTitle" data-field="title" type="text"></label>
+        <label class="field"><span>Short description on the project card</span><textarea id="projectSummary" data-field="summary" rows="3"></textarea></label>
+        <label class="field"><span>Full project description</span><textarea id="projectIntro" data-field="detail.intro" rows="5"></textarea></label>
+        <label class="field"><span>Highlights — one bullet per line</span><textarea id="projectBullets" data-field="detail.bullets" data-list="lines" rows="6"></textarea></label>
+        <details class="more-fields"><summary>Dates, organization, labels + tags</summary>
+          <label class="field"><span>Organization / role on the card</span><input data-field="cardMeta.0" type="text"></label>
+          <label class="field"><span>Dates on the card</span><input data-field="cardMeta.1" type="text"></label>
+          <label class="field"><span>Card tags — one per line</span><textarea data-field="cardTags" data-list="lines" rows="3"></textarea></label>
+          <label class="field"><span>Organization / role / dates in the detail view</span><input data-field="detail.meta" type="text"></label>
+          <label class="field"><span>Detail subtitle</span><input data-field="detail.short" type="text"></label>
+          <label class="field"><span>Detail category label</span><input data-field="detail.label" type="text"></label>
+          <label class="field"><span>Detail tags — one per line</span><textarea data-field="detail.tags" data-list="lines" rows="3"></textarea></label>
+        </details>
+      </fieldset>
+      <fieldset id="photoFields"><legend>Photo information</legend>
+        <div class="editor-photo"><img id="editorPhoto" alt=""></div>
+        <div class="photo-controls"><button id="previousPhoto" type="button" aria-label="Previous photo">← Previous</button><span id="photoCount" aria-live="polite"></span><button id="nextPhoto" type="button" aria-label="Next photo">Next →</button></div>
+        <div class="photo-strip" id="photoStrip" aria-label="Choose a photo"></div>
+        <label class="field"><span>Photo title</span><input id="photoTitle" data-photo-field="title" type="text"></label>
+        <label class="field"><span>Information about this photo</span><textarea id="photoCaption" data-photo-field="caption" rows="5" placeholder="Describe what this picture shows, your design decisions, or the results."></textarea></label>
+        <label class="field"><span>Image description for screen readers</span><textarea id="photoAlt" data-photo-field="alt" rows="2"></textarea></label>
+      </fieldset>
+      <section class="publish-panel" aria-labelledby="publishTitle">
+        <h2 id="publishTitle">Publish your changes</h2>
+        <p>Publishing saves your text and captions to GitHub and updates the portfolio for everyone.</p>
+        <details class="token-guide"><summary>Set up publishing access</summary><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained GitHub token ↗</a>. Select only <strong>yienliu84 / Portfolio</strong> and give <strong>Contents: read and write</strong> access. Paste the token below when publishing. It is sent only to GitHub, kept out of saved drafts, and cleared after the attempt.</p></details>
+        <form id="publishForm">
+          <label class="field"><span>GitHub token</span><input id="githubToken" type="password" autocomplete="off" spellcheck="false" required aria-describedby="tokenHelp"></label>
+          <p id="tokenHelp" class="help">Only a GitHub account with write access to this repository can publish.</p>
+          <button id="publishButton" class="primary" type="submit" disabled>Publish to GitHub</button>
+        </form>
+        <p id="publishStatus" role="status" aria-live="polite"></p>
+        <div class="secondary-actions"><button id="downloadContent" type="button">Download content.js</button><button id="reloadPublished" type="button">Load published version</button></div>
+        <details class="manual-publish"><summary>Publish through the GitHub website instead</summary><p>Copy the updated file, open GitHub's editor, replace its contents, and choose <strong>Commit changes</strong>.</p><div class="secondary-actions"><button id="copyContent" type="button">Copy updated content.js</button><a class="button" href="https://github.com/yienliu84/Portfolio/edit/main/content.js" target="_blank" rel="noopener noreferrer">Open GitHub editor ↗</a></div><textarea id="manualCopy" readonly aria-label="Updated content.js" hidden></textarea></details>
+      </section>
+    </section>
+    <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
+  </main>
+  <script src="content.js"></script><script src="content-tools.js"></script><script src="editor.js"></script>
+</body>
+</html>
