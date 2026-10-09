@@ -14,6 +14,10 @@ function tagsHtml(tags=[]) { return tags.map(tag => `<span class="tag">${esc(tag
 function specRows(rows=[]) { return rows.map(([key,value]) => `<div class="spec-key">${esc(key)}</div><div class="spec-val">${esc(value)}</div>`).join(''); }
 
 function galleryHtml(key, project) {
+  if (!project.images.length) {
+    positions.set(key, 0);
+    return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos"><div class="project-media photo-empty"><p>No photos added.</p></div></div>`;
+  }
   const index = Math.min(positions.get(key) || 0, project.images.length - 1);
   const photo = project.images[index];
   positions.set(key, index);
@@ -24,9 +28,9 @@ function galleryHtml(key, project) {
         <span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span>
       </button>
       <div class="photo-nav">
-        <button type="button" data-photo-step="-1" data-photo-project="${esc(key)}" aria-label="Previous ${esc(project.title)} photo">←</button>
+        <button type="button" data-photo-step="-1" data-photo-project="${esc(key)}" aria-label="Previous ${esc(project.title)} photo"${project.images.length < 2 ? ' disabled' : ''}>←</button>
         <span data-photo-count aria-live="polite">${index + 1} / ${project.images.length}</span>
-        <button type="button" data-photo-step="1" data-photo-project="${esc(key)}" aria-label="Next ${esc(project.title)} photo">→</button>
+        <button type="button" data-photo-step="1" data-photo-project="${esc(key)}" aria-label="Next ${esc(project.title)} photo"${project.images.length < 2 ? ' disabled' : ''}>→</button>
       </div>
     </div>
     <div class="photo-description"><strong data-photo-title>${esc(photo.title)}</strong><p data-photo-caption${photo.caption ? '' : ' hidden'}>${esc(photo.caption)}</p></div>
@@ -106,7 +110,7 @@ function renderContent() {
 
 function setPhoto(key, requestedIndex) {
   const project = CONTENT.projects[key];
-  if (!project) return;
+  if (!project || !project.images.length) return;
   const index = ((requestedIndex % project.images.length) + project.images.length) % project.images.length;
   positions.set(key, index);
   const photo = project.images[index];
@@ -122,11 +126,23 @@ function setPhoto(key, requestedIndex) {
   if (dialog.open && dialog.dataset.project === key) updateModalPhoto(key);
 }
 function updateModalPhoto(key) {
-  const project = CONTENT.projects[key], index = positions.get(key) || 0, photo = project.images[index];
-  qs('#modalMainImage').src = photo.src; qs('#modalMainImage').alt = photo.alt;
-  qs('#modalPhotoTitle').textContent = photo.title;
-  qs('#modalCaption').textContent = photo.caption; qs('#modalCaption').hidden = !photo.caption;
-  qs('#modalPhotoCount').textContent = (index + 1) + ' / ' + project.images.length;
+  const project = CONTENT.projects[key];
+  const index = Math.max(0, Math.min(positions.get(key) || 0, project.images.length - 1));
+  const photo = project.images[index];
+  positions.set(key, index);
+  const image = qs('#modalMainImage'); image.hidden = !photo;
+  if (photo) { image.src = photo.src; image.alt = photo.alt; }
+  else { image.removeAttribute('src'); image.alt = ''; }
+  let empty = qs('.photo-empty-message', qs('.modal-photo-stage'));
+  if (!empty) {
+    empty = document.createElement('p'); empty.className = 'photo-empty-message';
+    empty.textContent = 'No photos added.'; qs('.modal-photo-stage').append(empty);
+  }
+  empty.hidden = Boolean(photo);
+  qs('#modalPhotoTitle').textContent = photo?.title || 'Photo gallery';
+  qs('#modalCaption').textContent = photo?.caption || ''; qs('#modalCaption').hidden = !photo?.caption;
+  qs('#modalPhotoCount').textContent = (photo ? index + 1 : 0) + ' / ' + project.images.length;
+  qsa('[data-modal-step]').forEach(button => button.disabled = project.images.length < 2);
   qsa('[data-photo-index]', qs('#thumbRow')).forEach((button, i) => {
     button.classList.toggle('active', i === index); button.setAttribute('aria-pressed', String(i === index));
   });
