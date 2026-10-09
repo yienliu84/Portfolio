@@ -10,6 +10,7 @@ let content = tools.clone(draft?.content || window.PORTFOLIO_CONTENT);
 let baseline = tools.clone(draft?.baseline || window.PORTFOLIO_CONTENT);
 let baseSha = draft?.baseSha || null;
 let edited = Boolean(draft?.edited);
+let removedPhotos = tools.clone(draft?.removedPhotos || {});
 let busy = false;
 let selectedProject = new URLSearchParams(location.search).get('project');
 if (!content.projects[selectedProject]) selectedProject = Object.keys(content.projects)[0];
@@ -39,7 +40,7 @@ function postPreview() {
 }
 function saveDraft(showStatus=true) {
   try {
-    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, savedAt:Date.now()}));
+    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, removedPhotos, savedAt:Date.now()}));
     if (showStatus) status(edited ? 'Draft saved on this browser — not published yet.' : 'Showing the published text.');
   } catch {
     status('Browser storage is unavailable. Download your draft before closing this page.', true);
@@ -58,12 +59,21 @@ function renderProjectSelect() {
 }
 function renderPhoto() {
   const project = content.projects[selectedProject];
-  const index = Math.min(positions.get(selectedProject) || 0, project.images.length - 1);
+  const index = Math.max(0, Math.min(positions.get(selectedProject) || 0, project.images.length - 1));
   positions.set(selectedProject, index);
   const photo = project.images[index];
-  qs('#editorPhoto').src = photo.src; qs('#editorPhoto').alt = photo.alt;
-  qs('#photoCount').textContent = (index + 1) + ' / ' + project.images.length;
-  qsa('[data-photo-field]').forEach(field => field.value = photo[field.dataset.photoField]);
+  const image = qs('#editorPhoto');
+  image.hidden = !photo; qs('#emptyPhotos').hidden = Boolean(photo);
+  if (photo) { image.src = photo.src; image.alt = photo.alt; }
+  else { image.removeAttribute('src'); image.alt = ''; }
+  qs('#photoCount').textContent = (photo ? index + 1 : 0) + ' / ' + project.images.length;
+  qsa('[data-photo-field]').forEach(field => {
+    field.value = photo?.[field.dataset.photoField] || ''; field.disabled = !photo;
+  });
+  qs('#previousPhoto').disabled = project.images.length < 2;
+  qs('#nextPhoto').disabled = project.images.length < 2;
+  qs('#deletePhoto').disabled = !photo;
+  qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
   const strip = qs('#photoStrip'); strip.replaceChildren();
   project.images.forEach((photo, photoIndex) => {
     const button = document.createElement('button');
@@ -86,6 +96,7 @@ function renderProject() {
 }
 function movePhoto(index) {
   const length = content.projects[selectedProject].images.length;
+  if (!length) return;
   positions.set(selectedProject, ((index % length) + length) % length);
   renderPhoto(); postPreview();
 }
@@ -128,6 +139,7 @@ qsa('[data-field]').forEach(field => field.addEventListener('input', () => {
   edited = true; saveDraft();
 }));
 qsa('[data-photo-field]').forEach(field => field.addEventListener('input', () => {
+  if (!activePhoto()) return;
   activePhoto()[field.dataset.photoField] = field.value;
   if (field.dataset.photoField === 'alt') qs('#editorPhoto').alt = field.value;
   edited = true; saveDraft();
@@ -135,6 +147,27 @@ qsa('[data-photo-field]').forEach(field => field.addEventListener('input', () =>
 qs('#projectSelect').addEventListener('change', event => { selectedProject = event.target.value; renderProject(); });
 qs('#previousPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) - 1));
 qs('#nextPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) + 1));
+qs('#deletePhoto').addEventListener('click', () => {
+  if (busy || !activePhoto()) return;
+  const project = content.projects[selectedProject];
+  const index = positions.get(selectedProject) || 0;
+  (removedPhotos[selectedProject] ||= []).push({photo:tools.clone(project.images[index]), index});
+  project.images.splice(index, 1);
+  positions.set(selectedProject, Math.max(0, Math.min(index, project.images.length - 1)));
+  edited = true; renderPhoto(); saveDraft();
+  status('Photo deleted from your draft. Undo the deletion or publish to update the portfolio.');
+  if (!project.images.length) qs('#undoPhoto').focus();
+});
+qs('#undoPhoto').addEventListener('click', () => {
+  if (busy) return;
+  const deletion = removedPhotos[selectedProject]?.pop();
+  if (!deletion) return;
+  const project = content.projects[selectedProject];
+  const index = Math.min(deletion.index, project.images.length);
+  project.images.splice(index, 0, deletion.photo);
+  positions.set(selectedProject, index);
+  edited = true; renderPhoto(); saveDraft(); status('Photo restored to your draft.');
+});
 qs('#photoStrip').addEventListener('click', event => {
   const button = event.target.closest('[data-photo-index]');
   if (button) movePhoto(Number(button.dataset.photoIndex));
@@ -165,6 +198,7 @@ qs('#reloadPublished').addEventListener('click', async () => {
   try {
     const published = await getPublished();
     content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
+    removedPhotos = {};
     renderProjectSelect(); renderProject(); saveDraft(); publishStatus('Loaded the published version.');
   } catch (error) { status(error.message, true); }
   finally { busy = false; setEnabled(true); }
@@ -180,8 +214,9 @@ qs('#publishForm').addEventListener('submit', async event => {
     const published = await getPublished(token);
     if (!matchesBaseline(published)) throw new Error('GitHub has newer changes than this draft. Download your draft, then load the published version to avoid overwriting those changes.');
     const snapshot = tools.clone(content);
-    const result = await request(API, token, {method:'PUT', body:JSON.stringify({message:'Update portfolio project text and photo captions', content:tools.encode(tools.serialize(snapshot)), sha:published.sha, branch:'main'})});
+    const result = await request(API, token, {method:'PUT', body:JSON.stringify({message:'Update portfolio projects, photos, and captions', content:tools.encode(tools.serialize(snapshot)), sha:published.sha, branch:'main'})});
     baseSha = result.content.sha; baseline = tools.clone(snapshot); edited = false;
+    removedPhotos = {}; renderPhoto();
     saveDraft(false); status('Saved to GitHub. The public site will update when GitHub Pages finishes publishing.');
     publishStatus('Published to GitHub. ');
     const link = document.createElement('a'); link.textContent = 'View the saved change ↗';
@@ -207,6 +242,7 @@ async function initialize() {
       }
     } else {
       content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
+      removedPhotos = {};
       renderProjectSelect(); renderProject(); saveDraft();
     }
   } catch {
