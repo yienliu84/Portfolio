@@ -52,7 +52,9 @@ function writePath(object, path, value) {
   parent[last] = value;
 }
 function postPreview() {
-  qs('#previewFrame').contentWindow?.postMessage({type:'portfolio-preview', content, stagedPaths:activeStagedPaths(), project:selectedProject, photoIndex:positions.get(selectedProject) || 0}, location.origin);
+  const lastPhoto = Math.max(0, content.projects[selectedProject].images.length - 1);
+  const photoIndex = Math.min(positions.get(selectedProject) || 0, lastPhoto);
+  qs('#previewFrame').contentWindow?.postMessage({type:'portfolio-preview', content, stagedPaths:activeStagedPaths(), project:selectedProject, photoIndex}, location.origin);
 }
 function saveDraft(showStatus=true) {
   let saved = false;
@@ -78,19 +80,24 @@ function renderProjectSelect() {
 }
 function renderPhoto() {
   const project = content.projects[selectedProject];
-  const index = Math.max(0, Math.min(positions.get(selectedProject) || 0, project.images.length - 1));
+  const count = project.images.length;
+  const index = Math.max(0, Math.min(positions.get(selectedProject) || 0, count));
   positions.set(selectedProject, index);
   const photo = project.images[index];
   const image = qs('#editorPhoto');
-  image.hidden = !photo; qs('#emptyPhotos').hidden = Boolean(photo);
+  image.hidden = !photo; qs('#addPhotoSlide').hidden = Boolean(photo);
   if (photo) { image.src = photoPreview.src(photo.src); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
-  qs('#photoCount').textContent = (photo ? index + 1 : 0) + ' / ' + project.images.length;
+  qs('#photoCount').textContent = photo ? (index + 1) + ' / ' + count : 'Add photos';
   qsa('[data-photo-field]').forEach(field => {
     field.value = photo?.[field.dataset.photoField] || ''; field.disabled = !photo;
   });
-  qs('#previousPhoto').disabled = project.images.length < 2;
-  qs('#nextPhoto').disabled = project.images.length < 2;
+  qs('#previousPhoto').disabled = count === 0;
+  const next = qs('#nextPhoto');
+  const nextAddsPhotos = Boolean(photo) && index === count - 1;
+  next.disabled = count === 0;
+  next.textContent = nextAddsPhotos ? 'Add photos →' : 'Next →';
+  next.setAttribute('aria-label', nextAddsPhotos ? 'Next slide: Add photos' : 'Next slide');
   qs('#deletePhoto').disabled = !photo;
   qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
   const hasNewPhotos = activeStagedPaths().length > 0;
@@ -107,6 +114,14 @@ function renderPhoto() {
     const number = document.createElement('span'); number.textContent = photoIndex + 1;
     button.append(image, number); strip.append(button);
   });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'photo-choice add-photo-choice' + (photo ? '' : ' active');
+  add.dataset.photoIndex = count;
+  add.setAttribute('aria-label', 'Go to add photos slide');
+  add.setAttribute('aria-pressed', String(!photo));
+  add.textContent = '+';
+  strip.append(add);
 }
 function renderProject() {
   const project = content.projects[selectedProject];
@@ -117,10 +132,11 @@ function renderProject() {
   renderPhoto(); postPreview();
 }
 function movePhoto(index) {
-  const length = content.projects[selectedProject].images.length;
-  if (!length) return;
-  positions.set(selectedProject, ((index % length) + length) % length);
+  const slideCount = content.projects[selectedProject].images.length + 1;
+  const position = ((index % slideCount) + slideCount) % slideCount;
+  positions.set(selectedProject, position);
   renderPhoto(); postPreview();
+  if (position === slideCount - 1) qs('#addPhotoSlide').focus();
 }
 function setEnabled(enabled) {
   qs('#projectSelect').disabled = !enabled;
@@ -228,6 +244,7 @@ qsa('[data-photo-field]').forEach(field => field.addEventListener('input', () =>
   edited = true; saveDraft();
 }));
 qs('#projectSelect').addEventListener('change', event => { selectedProject = event.target.value; uploadStatus(''); renderProject(); });
+qs('#addPhotoSlide').addEventListener('click', () => qs('#addPhotos').click());
 qs('#addPhotos').addEventListener('change', async event => {
   const files = [...event.target.files];
   event.target.value = '';
@@ -279,7 +296,7 @@ qs('#deletePhoto').addEventListener('click', () => {
   positions.set(selectedProject, Math.max(0, Math.min(index, project.images.length - 1)));
   edited = true; renderPhoto(); saveDraft();
   status('Photo deleted from your draft. Undo the deletion or publish to update the portfolio.');
-  if (!project.images.length) qs('#undoPhoto').focus();
+  if (!project.images.length) qs('#addPhotoSlide').focus();
 });
 qs('#undoPhoto').addEventListener('click', () => {
   if (busy) return;
