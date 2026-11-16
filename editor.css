@@ -12,3 +12,11 @@
 .add-photo-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#111;font-size:2rem;line-height:1}
 #uploadHelp{color:var(--muted);font-size:.75rem}
 .photo-choice.add-photo-choice{background:#171d24;color:var(--accent);font-size:1.7rem}
+.photo-choice[draggable="true"]{cursor:grab}
+.photo-choice.dragging{opacity:.5}
+.photo-choice.drop-before::after,.photo-choice.drop-after::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+.photo-choice.drop-before::after{border-left:4px solid var(--accent)}
+.photo-choice.drop-after::after{border-right:4px solid var(--accent)}
+.photo-order-controls .photo-help{margin:0 0 8px}
+.photo-order-controls button{font-size:.75rem}
+.photo-order-controls button:disabled{cursor:default}
