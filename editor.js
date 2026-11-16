@@ -4,6 +4,7 @@
 const tools = window.PortfolioContentTools;
 const qs = selector => document.querySelector(selector);
 const qsa = selector => [...document.querySelectorAll(selector)];
+const photoStrip = qs('#photoStrip');
 const REPOSITORY_API = 'https://api.github.com/repos/yienliu84/Portfolio';
 const API = REPOSITORY_API + '/contents/content.js';
 const GIT_API = REPOSITORY_API + '/git';
@@ -17,6 +18,8 @@ let removedPhotos = tools.clone(draft?.removedPhotos || {});
 let stagedPaths = draft?.stagedPaths || [];
 const photoPreview = tools.createPhotoPreview();
 let busy = false;
+let draggedThumbnail = null;
+let dropThumbnail = null;
 let selectedProject = new URLSearchParams(location.search).get('project');
 if (!content.projects[selectedProject]) selectedProject = Object.keys(content.projects)[0];
 const positions = new Map();
@@ -100,19 +103,24 @@ function renderPhoto() {
   next.setAttribute('aria-label', nextAddsPhotos ? 'Next slide: Add photos' : 'Next slide');
   qs('#deletePhoto').disabled = !photo;
   qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
+  qs('#photoOrderControls').hidden = count < 2;
+  qs('#movePhotoEarlier').disabled = !photo || index === 0;
+  qs('#movePhotoLater').disabled = !photo || index >= count - 1;
   const hasNewPhotos = activeStagedPaths().length > 0;
   qs('#copyContent').disabled = hasNewPhotos;
   qs('#manualPhotoHelp').hidden = !hasNewPhotos;
-  const strip = qs('#photoStrip'); strip.replaceChildren();
+  endPhotoDrag();
+  photoStrip.replaceChildren();
   project.images.forEach((photo, photoIndex) => {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'photo-choice' + (photoIndex === index ? ' active' : '');
     button.dataset.photoIndex = photoIndex;
+    button.draggable = count > 1;
     button.setAttribute('aria-label', 'Edit photo ' + (photoIndex + 1) + ': ' + photo.title);
     button.setAttribute('aria-pressed', String(photoIndex === index));
-    const image = document.createElement('img'); image.src = photoPreview.src(photo.src); image.alt = ''; image.loading = 'lazy';
+    const image = document.createElement('img'); image.src = photoPreview.src(photo.src); image.alt = ''; image.loading = 'lazy'; image.draggable = false;
     const number = document.createElement('span'); number.textContent = photoIndex + 1;
-    button.append(image, number); strip.append(button);
+    button.append(image, number); photoStrip.append(button);
   });
   const add = document.createElement('button');
   add.type = 'button';
@@ -121,7 +129,7 @@ function renderPhoto() {
   add.setAttribute('aria-label', 'Go to add photos slide');
   add.setAttribute('aria-pressed', String(!photo));
   add.textContent = '+';
-  strip.append(add);
+  photoStrip.append(add);
 }
 function renderProject() {
   const project = content.projects[selectedProject];
@@ -137,6 +145,25 @@ function movePhoto(index) {
   positions.set(selectedProject, position);
   renderPhoto(); postPreview();
   if (position === slideCount - 1) qs('#addPhotoSlide').focus();
+}
+function reorderPhoto(from, to) {
+  const images = content.projects[selectedProject].images;
+  if (busy || !images[from] || !images[to] || from === to) return;
+  const [photo] = images.splice(from, 1);
+  images.splice(to, 0, photo);
+  positions.set(selectedProject, to);
+  edited = true;
+  renderPhoto();
+  saveDraft();
+}
+function clearDropMarker() {
+  dropThumbnail?.classList.remove('drop-before', 'drop-after');
+  dropThumbnail = null;
+}
+function endPhotoDrag() {
+  clearDropMarker();
+  draggedThumbnail?.classList.remove('dragging');
+  draggedThumbnail = null;
 }
 function setEnabled(enabled) {
   qs('#projectSelect').disabled = !enabled;
@@ -308,10 +335,57 @@ qs('#undoPhoto').addEventListener('click', () => {
   positions.set(selectedProject, index);
   edited = true; renderPhoto(); saveDraft(); status('Photo restored to your draft.');
 });
-qs('#photoStrip').addEventListener('click', event => {
+photoStrip.addEventListener('click', event => {
   const button = event.target.closest('[data-photo-index]');
   if (button) movePhoto(Number(button.dataset.photoIndex));
 });
+for (const [selector, step] of [['#movePhotoEarlier', -1], ['#movePhotoLater', 1]]) {
+  qs(selector).addEventListener('click', event => {
+    const index = positions.get(selectedProject) || 0;
+    reorderPhoto(index, index + step);
+    if (event.currentTarget.disabled) photoStrip.children[positions.get(selectedProject)]?.focus();
+  });
+}
+photoStrip.addEventListener('dragstart', event => {
+  const thumbnail = event.target.closest('[draggable="true"][data-photo-index]');
+  if (busy || !thumbnail) { event.preventDefault(); return; }
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', thumbnail.dataset.photoIndex);
+  draggedThumbnail = thumbnail;
+  thumbnail.classList.add('dragging');
+});
+photoStrip.addEventListener('dragover', event => {
+  if (!draggedThumbnail) return;
+  event.preventDefault();
+  const {left, right} = photoStrip.getBoundingClientRect();
+  if (event.clientX < left + 24) photoStrip.scrollLeft -= 16;
+  if (event.clientX > right - 24) photoStrip.scrollLeft += 16;
+  const target = event.target.closest('[data-photo-index]');
+  if (target === dropThumbnail) return;
+  clearDropMarker();
+  if (!target || target === draggedThumbnail) return;
+  const from = Number(draggedThumbnail.dataset.photoIndex);
+  const to = Number(target.dataset.photoIndex);
+  const isPlus = target.classList.contains('add-photo-choice');
+  const last = content.projects[selectedProject].images.length - 1;
+  if (isPlus && from === last) return;
+  target.classList.add(isPlus || to < from ? 'drop-before' : 'drop-after');
+  dropThumbnail = target;
+});
+photoStrip.addEventListener('dragleave', event => {
+  if (!photoStrip.contains(event.relatedTarget)) clearDropMarker();
+});
+photoStrip.addEventListener('drop', event => {
+  if (!draggedThumbnail) return;
+  event.preventDefault();
+  const target = event.target.closest('[data-photo-index]');
+  const from = Number(draggedThumbnail.dataset.photoIndex);
+  endPhotoDrag();
+  if (!target) return;
+  const last = content.projects[selectedProject].images.length - 1;
+  reorderPhoto(from, Math.min(Number(target.dataset.photoIndex), last));
+});
+photoStrip.addEventListener('dragend', endPhotoDrag);
 qs('#previewFrame').addEventListener('load', postPreview);
 qs('#downloadContent').addEventListener('click', () => {
   const url = URL.createObjectURL(new Blob([tools.serialize(content)], {type:'text/javascript;charset=utf-8'}));

@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Edit Portfolio — Yi'en Liu</title>
-  <link rel="stylesheet" href="editor.css?v=6">
+  <link rel="stylesheet" href="editor.css?v=7">
 </head>
 <body>
   <header class="editor-header"><a class="back" href="./">← Portfolio</a><span>Portfolio editor</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Open draft preview ↗</a></header>
@@ -45,7 +45,12 @@
           </button>
         </div>
         <div class="photo-controls"><button id="previousPhoto" type="button" aria-label="Previous slide">← Previous</button><span id="photoCount" aria-live="polite"></span><button id="nextPhoto" type="button" aria-label="Next slide">Next →</button></div>
-        <div class="photo-strip" id="photoStrip" aria-label="Choose a photo"></div>
+        <div class="photo-strip" id="photoStrip" role="group" aria-label="Photo order" aria-describedby="photoOrderHelp"></div>
+        <div id="photoOrderControls" class="photo-order-controls" hidden>
+          <p id="photoOrderHelp" class="photo-help">Drag a thumbnail to reorder the photos, or select one and use the buttons below.</p>
+          <button id="movePhotoEarlier" type="button">← Move earlier</button>
+          <button id="movePhotoLater" type="button">Move later →</button>
+        </div>
         <div class="photo-actions"><button id="deletePhoto" class="danger" type="button">Delete photo</button><button id="undoPhoto" type="button" disabled>Undo deletion</button></div>
         <p class="photo-help">Deletes the selected photo from this project. Publish to update the portfolio, or undo the deletion before publishing.</p>
         <label class="field"><span>Photo title</span><input id="photoTitle" data-photo-field="title" type="text"></label>
@@ -68,6 +73,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=6"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=7"></script>
 </body>
 </html>
