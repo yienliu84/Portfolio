@@ -193,7 +193,7 @@ window.PORTFOLIO_CONTENT = {
         "intro": "A modular FDM 3D-printed STEM learning vehicle designed around interchangeable chassis modules, a tracked drivetrain, and a multitool robotic arm.",
         "bullets": [
           "Leading a 10+ member team across 3 sub-teams and training 5+ new members in DFAM, FDM printing, mechanical design, embedded systems, and Fusion 360.",
-          "Engineering the tread drivetrain including gearbox, treads, driveshaft, mounting brackets, and a brushed DC motor interface.",
+          "Engineering the tread drivetrain, including gears, treads, driveshaft, mounting brackets, and a brushed DC motor interface.",
           "Developing magnetic clip chassis connections and a master-slave microcontroller architecture for interchangeable mechatronic modules.",
           "Running Fusion 360 static stress FEA on critical chassis and drivetrain components."
         ],
@@ -208,53 +208,46 @@ window.PORTFOLIO_CONTENT = {
       },
       "images": [
         {
-          "id": "merv-original-1",
-          "src": "assets/photos/merv-original-1.svg",
-          "alt": "Exploded modular chassis and clip component layout",
-          "title": "Exploded modular chassis and clip component layout",
-          "caption": ""
+          "id": "dae066ee-dab9-4ee4-8045-35be0551e59f",
+          "src": "assets/photos/dae066ee-dab9-4ee4-8045-35be0551e59f.png",
+          "title": "Tread Test Isometric View",
+          "caption": "Tread design, movement, and controls are being tested using the shown setup. This setup includes 2 31-link tread chains, 4 sprockets, 4 bevel gears, 2 brushed DC motors, attachable tread brackets, and a flat plate for electronics.",
+          "alt": ""
         },
         {
-          "id": "merv-gearbox-angled",
-          "src": "assets/photos/merv-gearbox-angled.svg",
-          "alt": "Gearbox and motor mounting assembly.",
-          "title": "Gearbox — angled view",
-          "caption": "Gearbox and motor mounting assembly."
+          "id": "ec048db7-0703-4a24-a93f-e18fe0c5a565",
+          "src": "assets/photos/ec048db7-0703-4a24-a93f-e18fe0c5a565.png",
+          "title": "Tread Test Front View",
+          "caption": "The bevel gear layout, coupled with a D-drive shaft and sprocket, is used to transmit power at a 90-degree angle to the tread chain.",
+          "alt": ""
         },
         {
-          "id": "merv-gearbox-end",
-          "src": "assets/photos/merv-gearbox-end.svg",
-          "alt": "Alternate view of the gearbox and motor mounting assembly.",
-          "title": "Gearbox — end view",
-          "caption": "Alternate view of the gearbox and motor mounting assembly."
+          "id": "a21c1009-64f7-4b9d-9fda-45928461b00c",
+          "src": "assets/photos/a21c1009-64f7-4b9d-9fda-45928461b00c.png",
+          "title": "Tread Test Bottom View",
+          "caption": "The motor mounting and bracket are designed for printability and weight reduction.",
+          "alt": ""
         },
         {
-          "id": "merv-driveshaft-front",
-          "src": "assets/photos/merv-driveshaft-front.svg",
-          "alt": "Drive shaft assembly with sprockets and a herringbone gear.",
-          "title": "Drive shaft — front view",
-          "caption": "Drive shaft assembly with sprockets and a herringbone gear."
+          "id": "4b29cb18-20bd-424a-ba31-f93a3dbfe241",
+          "src": "assets/photos/4b29cb18-20bd-424a-ba31-f93a3dbfe241.png",
+          "title": "Tread Section View",
+          "caption": "The sprockets and tread chain layout are shown. Tread links are designed to be printed using PETG with an attachable grooved TPU pad. This feature allows for TPU pad modularity and replaceability over the products life.",
+          "alt": "Tread Section View"
         },
         {
-          "id": "merv-driveshaft-angled",
-          "src": "assets/photos/merv-driveshaft-angled.svg",
-          "alt": "Angled view of the drive shaft and sprocket assembly.",
-          "title": "Drive shaft — angled view",
-          "caption": "Angled view of the drive shaft and sprocket assembly."
+          "id": "d200a196-690c-48ce-b91f-bc583fdbd370",
+          "src": "assets/photos/d200a196-690c-48ce-b91f-bc583fdbd370.png",
+          "title": "Bearing Section View",
+          "caption": "Each drive shaft is supported by two bearings to reduce friction and balance bending moments for increased rigidity.",
+          "alt": "Test Bearing View"
         },
         {
-          "id": "merv-tread-front",
-          "src": "assets/photos/merv-tread-front.svg",
-          "alt": "Tread link geometry and connection features.",
-          "title": "Tread link — first view",
-          "caption": "Tread link geometry and connection features."
-        },
-        {
-          "id": "merv-tread-angled",
-          "src": "assets/photos/merv-tread-angled.svg",
-          "alt": "Alternate view of the tread link geometry.",
-          "title": "Tread link — second view",
-          "caption": "Alternate view of the tread link geometry."
+          "id": "850a1baf-a58f-4be8-977f-0c8547237ae4",
+          "src": "assets/photos/850a1baf-a58f-4be8-977f-0c8547237ae4.png",
+          "title": "Heat Set Insert View",
+          "caption": "Each sprocket and gear uses a heat set insert and set screw to attach to the D-shaft.",
+          "alt": ""
         }
       ]
     },
