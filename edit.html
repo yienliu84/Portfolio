@@ -60,7 +60,7 @@
       <section class="publish-panel" aria-labelledby="publishTitle">
         <h2 id="publishTitle">Publish your changes</h2>
         <p>Publishing saves your text, photos, and captions to GitHub and updates the portfolio for everyone.</p>
-        <details class="token-guide"><summary>Set up publishing access</summary><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained GitHub token ↗</a>. Select only <strong>yienliu84 / Portfolio</strong> and give <strong>Contents: read and write</strong> access. Paste the token below when publishing. It is sent only to GitHub, kept out of saved drafts, and cleared after the attempt.</p></details>
+        <details class="token-guide"><summary>Set up publishing access</summary><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create a fine-grained GitHub token ↗</a>. Set <strong>Resource owner</strong> to <strong>yienliu84</strong>, choose <strong>Only select repositories</strong>, and select <strong>Portfolio</strong>. Under <strong>Repository permissions</strong>, set <strong>Contents</strong> to <strong>Read and write</strong>. Paste the token below when publishing. It is sent only to GitHub, kept out of saved drafts, and cleared after the attempt.</p></details>
         <form id="publishForm">
           <label class="field"><span>GitHub token</span><input id="githubToken" type="password" autocomplete="off" spellcheck="false" required aria-describedby="tokenHelp"></label>
           <p id="tokenHelp" class="help">Only a GitHub account with write access to this repository can publish.</p>
@@ -73,6 +73,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=8"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=9"></script>
 </body>
 </html>

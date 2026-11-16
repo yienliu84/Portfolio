@@ -182,7 +182,20 @@ async function request(url, token='', options={}) {
   try { data = await response.json(); } catch { throw new Error('GitHub returned an unreadable response. Your draft is still here.'); }
   if (!response.ok) {
     if (response.status === 401) throw new Error('GitHub did not accept this token. Check the token or create a new one.');
-    if (response.status === 403) throw new Error('GitHub denied access or its rate limit was reached. Check repository Contents write access, then try again.');
+    if (response.status === 403 || response.status === 429) {
+      const message = typeof data.message === 'string' ? data.message.trim() : '';
+      const retryAfter = Number(response.headers.get('retry-after'));
+      const rateExhausted = response.headers.get('x-ratelimit-remaining') === '0';
+      if (response.status === 429 || retryAfter > 0 || rateExhausted || /rate limit|abuse detection/i.test(message)) {
+        const reset = rateExhausted ? Number(response.headers.get('x-ratelimit-reset')) - Date.now() / 1000 : 0;
+        const minutes = Math.ceil(Math.max(60, retryAfter, reset) / 60);
+        throw new Error('GitHub is rate limiting this request. Wait at least ' + minutes + (minutes === 1 ? ' minute' : ' minutes') + ' before trying again. Your draft is still here.');
+      }
+      if (/not accessible by personal access token|permission|forbidden/i.test(message) || !message) {
+        throw new Error('GitHub denied access (403). Check that your token belongs to yienliu84, is scoped to Portfolio, and has Contents read and write permission.');
+      }
+      throw new Error('GitHub returned 403. ' + message.slice(0, 240));
+    }
     if (response.status === 409 || (options.method === 'PATCH' && response.status === 422)) throw new Error('GitHub could not update the branch. Your draft is still here. Try again or check the repository’s branch settings.');
     if (response.status === 404) throw new Error('GitHub could not open this repository with the provided access. Select Portfolio when creating the token.');
     throw new Error('GitHub could not save the file (HTTP ' + response.status + '). Your draft is still here.');
