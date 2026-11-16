@@ -26,7 +26,7 @@ function galleryHtml(key, project) {
   positions.set(key, index);
   return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos">
     <div class="project-media photo-stage">
-      <button class="photo-open" type="button" data-open-project="${esc(key)}" aria-label="Enlarge ${esc(photo.title)}">
+      <button class="photo-open" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}">
         <img class="project-photo" src="${esc(photoSrc(photo))}" alt="${esc(photo.alt)}" loading="lazy" decoding="async">
         <span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span>
       </button>
@@ -64,12 +64,12 @@ function renderContent() {
   qs('#projectsTitle').textContent = ps.title;
   qs('#projectsIntro').textContent = ps.intro;
   qs('#projectGrid').innerHTML = Object.entries(CONTENT.projects).map(([key, p]) => `
-    <article class="project ${esc(p.cardClass || '')}" data-project="${esc(key)}">
+    <article class="project" data-project="${esc(key)}">
       ${galleryHtml(key, p)}
       <div class="project-body">
         <div class="project-meta"><span>${esc(p.cardMeta[0] || '')}</span><span>${esc(p.cardMeta[1] || '')}</span></div>
         <h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><div class="tags">${tagsHtml(p.cardTags)}</div>
-        <button class="detail-button" type="button" data-open-project="${esc(key)}" aria-label="Open ${esc(p.title)} details">View engineering details <span aria-hidden="true">↗</span></button>
+        <button class="detail-button" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Open ${esc(p.title)} details">View engineering details <span aria-hidden="true">↗</span></button>
       </div>
     </article>`).join('');
   const ex = CONTENT.experience;
@@ -150,11 +150,11 @@ function updateModalPhoto(key) {
     button.classList.toggle('active', i === index); button.setAttribute('aria-pressed', String(i === index));
   });
 }
-function openProject(key) {
+function openProject(key, trigger) {
   const project = CONTENT.projects[key];
   if (!project) return;
   const detail = project.detail;
-  if (!dialog.open) previousFocus = document.activeElement;
+  if (!dialog.open) previousFocus = trigger || document.activeElement;
   dialog.dataset.project = key;
   qs('#modalMeta').textContent = detail.meta; qs('#modalShort').textContent = detail.short;
   qs('#modalLabel').textContent = detail.label; qs('#modalTitle').textContent = project.title;
@@ -163,18 +163,26 @@ function openProject(key) {
   qs('#modalTags').innerHTML = tagsHtml(detail.tags);
   qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show photo ${i + 1}: ${esc(photo.title)}" aria-pressed="false"><img src="${esc(photoSrc(photo))}" alt="" loading="lazy" decoding="async"><span>${i + 1}</span></button>`).join('');
   qsa('[data-modal-step]').forEach(button => button.dataset.photoProject = key);
-  if (!dialog.open) dialog.showModal();
+  if (!dialog.open) {
+    dialog.showModal();
+    dialog.scrollTop = 0;
+  }
   updateModalPhoto(key); document.body.style.overflow = 'hidden';
 }
 function closeProject() { dialog.close(); }
 function initInteractions() {
   document.addEventListener('click', event => {
     const open = event.target.closest('[data-open-project]');
-    if (open) { openProject(open.dataset.openProject); return; }
+    if (open) { openProject(open.dataset.openProject, open); return; }
     const step = event.target.closest('[data-photo-step], [data-modal-step]');
     if (step) { const key = step.dataset.photoProject; setPhoto(key, (positions.get(key) || 0) + Number(step.dataset.photoStep || step.dataset.modalStep)); return; }
     const thumb = event.target.closest('[data-photo-index]');
-    if (thumb) setPhoto(thumb.dataset.photoProject, Number(thumb.dataset.photoIndex));
+    if (thumb) { setPhoto(thumb.dataset.photoProject, Number(thumb.dataset.photoIndex)); return; }
+    const card = event.target.closest('.project[data-project]');
+    if (!card || event.target.closest('a, button')) return;
+    const selection = window.getSelection();
+    if (selection?.type === 'Range' && card.contains(selection.anchorNode)) return;
+    openProject(card.dataset.project, qs('.detail-button', card));
   });
   qs('#closeDialog').addEventListener('click', closeProject);
   dialog.addEventListener('click', event => { if (event.target === dialog) closeProject(); });
