@@ -226,8 +226,8 @@ async function publishDraft(snapshot, paths, token) {
   const body = data => JSON.stringify(data);
   const head = paths.length ? (await request(GIT_API + '/ref/heads/main', token)).object.sha : null;
   const published = await getPublished(token, head || 'main');
-  if (!matchesBaseline(published)) {
-    if (head && tools.serialize(published.content) === source) return {blobSha:published.sha, commitSha:head};
+  const contentAlreadySaved = tools.serialize(published.content) === source;
+  if (!matchesBaseline(published) && !(head && contentAlreadySaved)) {
     throw new Error('GitHub has newer changes than this draft. Download your draft before loading the published version.');
   }
   if (!head) {
@@ -236,10 +236,19 @@ async function publishDraft(snapshot, paths, token) {
     })});
     return {blobSha:result.content.sha, commitSha:result.commit.sha};
   }
-  const files = await Promise.all(paths.map(tools.readPhotoFile));
-  if (files.some(file => !file)) throw new Error('A new photo is missing from this browser. Delete the missing photo from the draft and add it again.');
   const parent = await request(GIT_API + '/commits/' + head, token);
-  const tree = [{path:'content.js', mode:'100644', type:'blob', content:source}];
+  const tree = [];
+  if (contentAlreadySaved) {
+    const publishedTree = await request(GIT_API + '/trees/' + parent.tree.sha + '?recursive=1', token);
+    if (publishedTree.truncated) throw new Error('GitHub could not verify all published photos. Your draft is still here.');
+    const existing = new Set(publishedTree.tree.filter(entry => entry.type === 'blob').map(entry => entry.path));
+    paths = paths.filter(path => !existing.has(path));
+    if (!paths.length) return {blobSha:published.sha, commitSha:head};
+  } else {
+    tree.push({path:'content.js', mode:'100644', type:'blob', content:source});
+  }
+  const files = await Promise.all(paths.map(tools.readPhotoFile));
+  if (files.some(file => !file)) throw new Error('A photo file is missing from this browser’s draft. Open the editor in the browser you used to add it, or add it again from the original file.');
   for (const [index, file] of files.entries()) {
     publishStatus('Uploading photo ' + (index + 1) + ' of ' + files.length + '…');
     const image = await new Promise((resolve, reject) => {
@@ -251,11 +260,11 @@ async function publishDraft(snapshot, paths, token) {
     const blob = await request(GIT_API + '/blobs', token, {method:'POST', body:body({content:image, encoding:'base64'})});
     tree.push({path:paths[index], mode:'100644', type:'blob', sha:blob.sha});
   }
-  publishStatus('Saving photos and project text to GitHub…');
+  publishStatus('Saving changes to GitHub…');
   const nextTree = await request(GIT_API + '/trees', token, {method:'POST', body:body({base_tree:parent.tree.sha, tree})});
   const commit = await request(GIT_API + '/commits', token, {method:'POST', body:body({message, tree:nextTree.sha, parents:[head]})});
   await request(GIT_API + '/refs/heads/main', token, {method:'PATCH', body:body({sha:commit.sha, force:false})});
-  return {blobSha:null, commitSha:commit.sha};
+  return {blobSha:contentAlreadySaved ? published.sha : null, commitSha:commit.sha};
 }
 
 qsa('[data-field]').forEach(field => field.addEventListener('input', () => {
@@ -461,7 +470,11 @@ async function initialize() {
     const published = await getPublished();
     if (draft && edited) {
       if (!matchesBaseline(published)) {
-        status('Draft restored. GitHub has newer changes; download this draft before loading the published version.', true);
+        if (activeStagedPaths().length && tools.serialize(published.content) === tools.serialize(content)) {
+          status('Draft restored. Choose Publish to GitHub to finish saving any photos still missing.');
+        } else {
+          status('Draft restored. GitHub has newer changes; download this draft before loading the published version.', true);
+        }
       } else {
         baseline = tools.clone(published.content); baseSha = published.sha;
         saveDraft();
