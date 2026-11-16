@@ -4,4 +4,11 @@
 
 .photo-actions button:disabled,.photo-controls button:disabled{cursor:default}
 
-#addPhotos::file-selector-button{margin-right:10px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:#171d24;color:var(--text);font:inherit;cursor:pointer}#uploadStatus.error{color:#ffb4ab}
+#uploadStatus.error{color:#ffb4ab}
+.photo-jump{font-size:.85rem}
+.editor-photo .add-photo-slide{display:flex;flex-direction:column;gap:10px;width:calc(100% - 24px);height:calc(100% - 24px);border:1px dashed #87603e;background:var(--panel);text-align:center}
+.editor-photo .add-photo-slide:hover{border-color:var(--accent);background:#1c232a}
+.add-photo-slide strong{font-size:1rem}
+.add-photo-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#111;font-size:2rem;line-height:1}
+#uploadHelp{color:var(--muted);font-size:.75rem}
+.photo-choice.add-photo-choice{background:#171d24;color:var(--accent);font-size:1.7rem}
