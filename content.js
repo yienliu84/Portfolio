@@ -106,7 +106,7 @@ window.PORTFOLIO_CONTENT = {
           "id": "e56d55b4-986c-4b2f-ad49-85ee59a5bdb3",
           "src": "assets/photos/e56d55b4-986c-4b2f-ad49-85ee59a5bdb3.png",
           "title": "Isometric View",
-          "caption": "",
+          "caption": "Manta Gator V1 is designed to be 3D printed and assembled in 10 primary parts. 2 wings, a center body, 3 control surfaces, and 4 vertical stabilizers. Other smaller parts include 10 hinge clips, a hatch, and a hatch bolt. ",
           "alt": ""
         },
         {
