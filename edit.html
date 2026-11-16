@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Edit Portfolio — Yi'en Liu</title>
-  <link rel="stylesheet" href="editor.css?v=5">
+  <link rel="stylesheet" href="editor.css?v=6">
 </head>
 <body>
   <header class="editor-header"><a class="back" href="./">← Portfolio</a><span>Portfolio editor</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Open draft preview ↗</a></header>
@@ -17,6 +17,7 @@
       <p class="intro">Edit project text, add photos, and give each picture a description. Drafts save on this browser as you type. Publish when you're ready to update the public portfolio.</p>
       <p id="draftStatus" class="draft-status" role="status">Loading published content…</p>
       <label class="field"><span>Choose a project</span><select id="projectSelect"></select></label>
+      <a class="photo-jump" href="#photoFields">Go to project photos ↓</a>
       <fieldset id="projectFields"><legend>Project text</legend>
         <label class="field"><span>Project title</span><input id="projectTitle" data-field="title" type="text"></label>
         <label class="field"><span>Short description on the project card</span><textarea id="projectSummary" data-field="summary" rows="3"></textarea></label>
@@ -33,11 +34,17 @@
         </details>
       </fieldset>
       <fieldset id="photoFields"><legend>Project photos</legend>
-        <label class="field"><span>Add photos</span><input id="addPhotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" multiple aria-describedby="uploadHelp"></label>
-        <p id="uploadHelp" class="photo-help">Choose JPG, PNG, WebP, or GIF files up to 20 MB each.</p>
+        <input id="addPhotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" multiple hidden>
         <p id="uploadStatus" class="photo-help" role="status" hidden></p>
-        <div class="editor-photo"><img id="editorPhoto" alt=""><p id="emptyPhotos" hidden>No photos for this project.</p></div>
-        <div class="photo-controls"><button id="previousPhoto" type="button" aria-label="Previous photo">← Previous</button><span id="photoCount" aria-live="polite"></span><button id="nextPhoto" type="button" aria-label="Next photo">Next →</button></div>
+        <div class="editor-photo">
+          <img id="editorPhoto" alt="" hidden>
+          <button id="addPhotoSlide" class="add-photo-slide" type="button" aria-labelledby="addPhotoLabel" aria-describedby="uploadHelp" hidden>
+            <span class="add-photo-icon" aria-hidden="true">+</span>
+            <strong id="addPhotoLabel">Add photos</strong>
+            <span id="uploadHelp">JPG, PNG, WebP, or GIF · up to 20 MB each</span>
+          </button>
+        </div>
+        <div class="photo-controls"><button id="previousPhoto" type="button" aria-label="Previous slide">← Previous</button><span id="photoCount" aria-live="polite"></span><button id="nextPhoto" type="button" aria-label="Next slide">Next →</button></div>
         <div class="photo-strip" id="photoStrip" aria-label="Choose a photo"></div>
         <div class="photo-actions"><button id="deletePhoto" class="danger" type="button">Delete photo</button><button id="undoPhoto" type="button" disabled>Undo deletion</button></div>
         <p class="photo-help">Deletes the selected photo from this project. Publish to update the portfolio, or undo the deletion before publishing.</p>
@@ -61,6 +68,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=5"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=5"></script><script src="editor.js?v=6"></script>
 </body>
 </html>
