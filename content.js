@@ -246,7 +246,7 @@ window.PORTFOLIO_CONTENT = {
           "id": "850a1baf-a58f-4be8-977f-0c8547237ae4",
           "src": "assets/photos/850a1baf-a58f-4be8-977f-0c8547237ae4.png",
           "title": "Heat Set Insert View",
-          "caption": "Each sprocket and gear uses a heat set insert and set screw to attach to the D-shaft.",
+          "caption": "Each sprocket and gear uses a heat-set insert and set screw to attach to the D-shaft. The D-shaft is secured via C-clips.",
           "alt": ""
         }
       ]
