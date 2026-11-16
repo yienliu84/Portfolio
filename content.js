@@ -77,11 +77,13 @@ window.PORTFOLIO_CONTENT = {
         "meta": "Archer Aviation Lab · Aug 2026 — Present",
         "short": "Aerial-aquatic VTOL airframe",
         "label": "Parametric CAD / CFD / Propulsion",
-        "intro": "A scalable Fusion 360 airframe for an aerial-aquatic VTOL concept, developed around geometry, aerodynamic, packaging, and cross-environment propulsion constraints.",
+        "intro": "A scalable Fusion 360 airframe for an aerial-aquatic VTOL concept, developed around geometry, aerodynamics, assembly, and cross-environment propulsion constraints.",
         "bullets": [
-          "Designed a parametric Fusion 360 airframe whose geometry scales with wing length.",
+          "Designed a parametric Fusion 360 airframe whose airfoil geometry scales with wing length and spline shape.",
           "Running CFD in Altair FlightStream to optimize drag, weight, mass distribution, and volume constraints.",
-          "Researching aerial-aquatic propulsion systems and variable-pitch propellers for operation across different environments."
+          "Fabricating ASA flight test frames using FDM 3D printing and acetone welding.",
+          "Manufacturing CNC-machined molds using Fusion 360 CAM and a 3-axis CNC mill",
+          "Fabricating carbon-fiber composite frames for Manta Gator using prepreg layup techniques."
         ],
         "tags": [
           "Fusion 360",
@@ -94,25 +96,74 @@ window.PORTFOLIO_CONTENT = {
       },
       "images": [
         {
-          "id": "manta-overview",
-          "src": "assets/photos/manta-overview.svg",
-          "alt": "Angled view of the Manta Gator airframe.",
-          "title": "Airframe overview",
-          "caption": "Angled view of the Manta Gator airframe."
+          "id": "7202ff3c-7fd2-4c01-b070-a495c6dad499",
+          "src": "assets/photos/7202ff3c-7fd2-4c01-b070-a495c6dad499.png",
+          "title": "Rendered Manta Gator",
+          "caption": "The rendered CAD model displays Manta Gator V1, designed to be 3D printed and assembled for initial flight testing.",
+          "alt": ""
         },
         {
-          "id": "manta-profile",
-          "src": "assets/photos/manta-profile.svg",
-          "alt": "Side view of the Manta Gator airframe.",
-          "title": "Side profile",
-          "caption": "Side view of the Manta Gator airframe."
+          "id": "e56d55b4-986c-4b2f-ad49-85ee59a5bdb3",
+          "src": "assets/photos/e56d55b4-986c-4b2f-ad49-85ee59a5bdb3.png",
+          "title": "Isometric View",
+          "caption": "",
+          "alt": ""
         },
         {
-          "id": "manta-planform",
-          "src": "assets/photos/manta-planform.svg",
-          "alt": "Top view of the Manta Gator airframe.",
-          "title": "Top view",
-          "caption": "Top view of the Manta Gator airframe."
+          "id": "95c2171d-1fdc-4a9b-acb4-4b1cc73433f4",
+          "src": "assets/photos/95c2171d-1fdc-4a9b-acb4-4b1cc73433f4.png",
+          "title": "Top Down View",
+          "caption": "The Manta Gator's spined body shape is displayed. The unique 3-control-surface, 4-vertical-stabilizer design is shown. This design lets the Manta Gator perform VTOL using its vertical stabilizers.",
+          "alt": ""
+        },
+        {
+          "id": "74b7393b-b1e5-40a4-a86c-df63710afdf2",
+          "src": "assets/photos/74b7393b-b1e5-40a4-a86c-df63710afdf2.png",
+          "title": "Side View",
+          "caption": "Displays zero camber airfoil and vertical stabilizer geometry. A zero-camber airfoil is crucial for maintaining neutrality in aquatic operations. ",
+          "alt": ""
+        },
+        {
+          "id": "4ccccece-ebde-4cec-973d-e4cbd9c1e576",
+          "src": "assets/photos/4ccccece-ebde-4cec-973d-e4cbd9c1e576.png",
+          "title": "Control Horn Section view",
+          "caption": "The pushrod control surface actuation system is shown.",
+          "alt": ""
+        },
+        {
+          "id": "d2ca11de-56c3-40ad-9033-e6d173805086",
+          "src": "assets/photos/d2ca11de-56c3-40ad-9033-e6d173805086.png",
+          "title": "Vertical Stabilizer Section View",
+          "caption": "The vertical stabilizer section view shows 3, 1.5 mm carbon fiber rods used for alignment, assembly, and rigidity.",
+          "alt": ""
+        },
+        {
+          "id": "2959e913-3bd1-4d30-ad20-64df175b387c",
+          "src": "assets/photos/2959e913-3bd1-4d30-ad20-64df175b387c.png",
+          "title": "Hinge Design",
+          "caption": "The hinge clip design allows for control surfaces to be manufactured from carbon fiber, while hinges are 3D printed. The hinge clips into the control surface, and a 1.5 mm carbon fiber rod is inserted to act as a hinge line.",
+          "alt": ""
+        },
+        {
+          "id": "ef14043f-a36a-4446-9687-841c8874ec7d",
+          "src": "assets/photos/ef14043f-a36a-4446-9687-841c8874ec7d.png",
+          "title": "Frame Section View",
+          "caption": "The internal webbed structure in the wings is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
+          "alt": ""
+        },
+        {
+          "id": "a5073eb4-595f-4fc7-9515-7230425a7d87",
+          "src": "assets/photos/a5073eb4-595f-4fc7-9515-7230425a7d87.png",
+          "title": "Curvature Analysis",
+          "caption": "Curvature analysis of the leading edge was done to evaluate airfoil smoothness.",
+          "alt": ""
+        },
+        {
+          "id": "5c69ebcd-b56d-4aa8-b9b7-df73b48f016e",
+          "src": "assets/photos/5c69ebcd-b56d-4aa8-b9b7-df73b48f016e.png",
+          "title": "Servo Open Hatch View",
+          "caption": "The removable, 3D-printed, spring-locked hatch provides a 17x8.5 cm region for access to electronics. The hatch also has a lip, allowing for future waterproofing via a rubber gasket.",
+          "alt": ""
         }
       ]
     },
