@@ -233,14 +233,14 @@ window.PORTFOLIO_CONTENT = {
           "src": "assets/photos/4b29cb18-20bd-424a-ba31-f93a3dbfe241.png",
           "title": "Tread Section View",
           "caption": "The sprockets and tread chain layout are shown. Tread links are designed to be printed using PETG with an attachable grooved TPU pad. This feature allows for TPU pad modularity and replaceability over the products life.",
-          "alt": "Tread Section View"
+          "alt": ""
         },
         {
           "id": "d200a196-690c-48ce-b91f-bc583fdbd370",
           "src": "assets/photos/d200a196-690c-48ce-b91f-bc583fdbd370.png",
           "title": "Bearing Section View",
           "caption": "Each drive shaft is supported by two bearings to reduce friction and balance bending moments for increased rigidity.",
-          "alt": "Test Bearing View"
+          "alt": ""
         },
         {
           "id": "850a1baf-a58f-4be8-977f-0c8547237ae4",
