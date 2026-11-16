@@ -5,7 +5,10 @@ const qs = (sel, root=document) => root.querySelector(sel);
 const qsa = (sel, root=document) => [...root.querySelectorAll(sel)];
 const esc = (value='') => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const previewMode = new URLSearchParams(location.search).get('preview') === '1';
-const draft = previewMode ? window.PortfolioContentTools.readDraft() : null;
+const tools = window.PortfolioContentTools;
+const draft = previewMode ? tools.readDraft() : null;
+const photoPreview = previewMode ? tools.createPhotoPreview() : null;
+const photoSrc = photo => photoPreview?.src(photo.src) || photo.src;
 let CONTENT = draft?.content || window.PORTFOLIO_CONTENT;
 const positions = new Map();
 const dialog = qs('#projectDialog');
@@ -24,7 +27,7 @@ function galleryHtml(key, project) {
   return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos">
     <div class="project-media photo-stage">
       <button class="photo-open" type="button" data-open-project="${esc(key)}" aria-label="Enlarge ${esc(photo.title)}">
-        <img class="project-photo" src="${esc(photo.src)}" alt="${esc(photo.alt)}" loading="lazy" decoding="async">
+        <img class="project-photo" src="${esc(photoSrc(photo))}" alt="${esc(photo.alt)}" loading="lazy" decoding="async">
         <span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span>
       </button>
       <div class="photo-nav">
@@ -116,7 +119,7 @@ function setPhoto(key, requestedIndex) {
   const photo = project.images[index];
   const gallery = qsa('[data-gallery]').find(item => item.dataset.gallery === key);
   if (gallery) {
-    qs('.project-photo', gallery).src = photo.src; qs('.project-photo', gallery).alt = photo.alt;
+    qs('.project-photo', gallery).src = photoSrc(photo); qs('.project-photo', gallery).alt = photo.alt;
     qs('.photo-open', gallery).setAttribute('aria-label', 'Enlarge ' + photo.title);
     qs('[data-photo-title]', gallery).textContent = photo.title;
     const caption = qs('[data-photo-caption]', gallery);
@@ -131,7 +134,7 @@ function updateModalPhoto(key) {
   const photo = project.images[index];
   positions.set(key, index);
   const image = qs('#modalMainImage'); image.hidden = !photo;
-  if (photo) { image.src = photo.src; image.alt = photo.alt; }
+  if (photo) { image.src = photoSrc(photo); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
   let empty = qs('.photo-empty-message', qs('.modal-photo-stage'));
   if (!empty) {
@@ -158,7 +161,7 @@ function openProject(key) {
   qs('#modalIntro').textContent = detail.intro;
   qs('#modalList').innerHTML = detail.bullets.map(item => `<li>${esc(item)}</li>`).join('');
   qs('#modalTags').innerHTML = tagsHtml(detail.tags);
-  qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show photo ${i + 1}: ${esc(photo.title)}" aria-pressed="false"><img src="${esc(photo.src)}" alt="" loading="lazy" decoding="async"><span>${i + 1}</span></button>`).join('');
+  qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show photo ${i + 1}: ${esc(photo.title)}" aria-pressed="false"><img src="${esc(photoSrc(photo))}" alt="" loading="lazy" decoding="async"><span>${i + 1}</span></button>`).join('');
   qsa('[data-modal-step]').forEach(button => button.dataset.photoProject = key);
   if (!dialog.open) dialog.showModal();
   updateModalPhoto(key); document.body.style.overflow = 'hidden';
@@ -197,12 +200,25 @@ renderContent(); qs('#year').textContent = new Date().getFullYear(); initInterac
 if (previewMode) {
   const banner = document.createElement('div'); banner.className = 'preview-banner';
   banner.textContent = 'Draft preview — changes are not published yet'; document.body.prepend(banner);
+  let updateNumber = 0;
+  async function updatePreview({content, stagedPaths, project, photoIndex}) {
+    const update = ++updateNumber;
+    const paths = new Set(stagedPaths || []);
+    if (paths.size) {
+      const images = Object.values(content.projects).flatMap(project => project.images);
+      await photoPreview.load(images.map(photo => photo.src).filter(path => paths.has(path))).catch(() => {});
+    }
+    if (update !== updateNumber) return;
+    CONTENT = content;
+    renderContent();
+    if (project && CONTENT.projects[project]) setPhoto(project, photoIndex || 0);
+    if (dialog.open) openProject(dialog.dataset.project);
+  }
   window.addEventListener('message', event => {
     if (event.origin !== location.origin || event.source !== window.parent || event.data?.type !== 'portfolio-preview') return;
-    if (!window.PortfolioContentTools.validate(event.data.content)) return;
-    CONTENT = event.data.content; renderContent();
-    if (event.data.project && CONTENT.projects[event.data.project]) setPhoto(event.data.project, event.data.photoIndex || 0);
-    if (dialog.open) openProject(dialog.dataset.project);
+    if (!tools.validate(event.data.content)) return;
+    updatePreview(event.data);
   });
+  if (draft?.stagedPaths?.length) updatePreview(draft);
 }
 })();

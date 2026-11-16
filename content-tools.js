@@ -20,7 +20,7 @@ window.PortfolioContentTools = (() => {
       const ids = new Set();
       return project.images.every(photo => {
         if (!photo || !['id', 'src', 'alt', 'title', 'caption'].every(key => typeof photo[key] === 'string')) return false;
-        if (!/^assets\/photos\/[a-z0-9-]+\.svg$/.test(photo.src) || ids.has(photo.id)) return false;
+        if (!/^assets\/photos\/[a-z0-9-]+\.(?:svg|jpg|png|webp|gif)$/.test(photo.src) || ids.has(photo.id)) return false;
         ids.add(photo.id);
         return true;
       });
@@ -61,5 +61,58 @@ window.PortfolioContentTools = (() => {
     }
   }
 
-  return {DRAFT_KEY, clone, validate, parse, serialize, encode, decode, readDraft};
+  let photoDatabase;
+  function openPhotoDatabase() {
+    photoDatabase ||= new Promise((resolve, reject) => {
+      const request = indexedDB.open('portfolio-draft-photos', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('photos');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    }).catch(error => {
+      photoDatabase = null;
+      throw error;
+    });
+    return photoDatabase;
+  }
+
+  async function usePhotoStore(mode, operation) {
+    const database = await openPhotoDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction('photos', mode);
+      const result = operation(transaction.objectStore('photos'));
+      transaction.oncomplete = () => resolve(result?.result);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  }
+
+  function savePhotoFiles(photos) {
+    return usePhotoStore('readwrite', store => {
+      photos.forEach(({photo, blob}) => store.put(blob, photo.src));
+    });
+  }
+
+  function removePhotoFiles(paths) {
+    if (!paths.length) return Promise.resolve();
+    return usePhotoStore('readwrite', store => {
+      paths.forEach(path => store.delete(path));
+    });
+  }
+
+  const readPhotoFile = path => usePhotoStore('readonly', store => store.get(path));
+  function createPhotoPreview() {
+    const urls = new Map();
+    return {
+      async load(paths) {
+        await Promise.all(paths.map(async path => {
+          if (urls.has(path)) return;
+          const blob = await readPhotoFile(path);
+          if (blob && !urls.has(path)) urls.set(path, URL.createObjectURL(blob));
+        }));
+      },
+      src: path => urls.get(path) || path
+    };
+  }
+
+  return {DRAFT_KEY, clone, validate, parse, serialize, encode, decode, readDraft,
+    savePhotoFiles, removePhotoFiles, readPhotoFile, createPhotoPreview};
 })();

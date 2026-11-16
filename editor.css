@@ -3,3 +3,5 @@
 .photo-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.danger{color:#ffb4ab;border-color:#73473f}.danger:hover{border-color:#ffb4ab}.photo-help{font-size:.75rem;color:var(--muted);margin:8px 0 16px}.editor-photo p{color:#a8b0b8;padding:20px;text-align:center}
 
 .photo-actions button:disabled,.photo-controls button:disabled{cursor:default}
+
+#addPhotos::file-selector-button{margin-right:10px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:#171d24;color:var(--text);font:inherit;cursor:pointer}#uploadStatus.error{color:#ffb4ab}

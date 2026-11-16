@@ -4,13 +4,18 @@
 const tools = window.PortfolioContentTools;
 const qs = selector => document.querySelector(selector);
 const qsa = selector => [...document.querySelectorAll(selector)];
-const API = 'https://api.github.com/repos/yienliu84/Portfolio/contents/content.js';
+const REPOSITORY_API = 'https://api.github.com/repos/yienliu84/Portfolio';
+const API = REPOSITORY_API + '/contents/content.js';
+const GIT_API = REPOSITORY_API + '/git';
+const MAX_PHOTO_BYTES = 20_000_000;
 const draft = tools.readDraft();
 let content = tools.clone(draft?.content || window.PORTFOLIO_CONTENT);
 let baseline = tools.clone(draft?.baseline || window.PORTFOLIO_CONTENT);
 let baseSha = draft?.baseSha || null;
 let edited = Boolean(draft?.edited);
 let removedPhotos = tools.clone(draft?.removedPhotos || {});
+let stagedPaths = draft?.stagedPaths || [];
+const photoPreview = tools.createPhotoPreview();
 let busy = false;
 let selectedProject = new URLSearchParams(location.search).get('project');
 if (!content.projects[selectedProject]) selectedProject = Object.keys(content.projects)[0];
@@ -27,6 +32,17 @@ function publishStatus(message, error=false) {
   qs('#publishStatus').textContent = message;
   qs('#publishStatus').classList.toggle('error', error);
 }
+function uploadStatus(message, error=false) {
+  const feedback = qs('#uploadStatus');
+  feedback.textContent = message;
+  feedback.hidden = !message;
+  feedback.classList.toggle('error', error);
+}
+function activeStagedPaths() {
+  const staged = new Set(stagedPaths);
+  return Object.values(content.projects).flatMap(project => project.images)
+    .map(photo => photo.src).filter(path => staged.has(path));
+}
 function activePhoto() { return content.projects[selectedProject].images[positions.get(selectedProject) || 0]; }
 function readPath(object, path) { return path.split('.').reduce((value, key) => value?.[key], object); }
 function writePath(object, path, value) {
@@ -36,16 +52,19 @@ function writePath(object, path, value) {
   parent[last] = value;
 }
 function postPreview() {
-  qs('#previewFrame').contentWindow?.postMessage({type:'portfolio-preview', content, project:selectedProject, photoIndex:positions.get(selectedProject) || 0}, location.origin);
+  qs('#previewFrame').contentWindow?.postMessage({type:'portfolio-preview', content, stagedPaths:activeStagedPaths(), project:selectedProject, photoIndex:positions.get(selectedProject) || 0}, location.origin);
 }
 function saveDraft(showStatus=true) {
+  let saved = false;
   try {
-    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, removedPhotos, savedAt:Date.now()}));
-    if (showStatus) status(edited ? 'Draft saved on this browser — not published yet.' : 'Showing the published text.');
+    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, removedPhotos, stagedPaths, savedAt:Date.now()}));
+    saved = true;
+    if (showStatus) status(edited ? 'Draft saved on this browser — not published yet.' : 'Showing the published portfolio.');
   } catch {
     status('Browser storage is unavailable. Download your draft before closing this page.', true);
   }
   postPreview();
+  return saved;
 }
 function renderProjectSelect() {
   const select = qs('#projectSelect');
@@ -64,7 +83,7 @@ function renderPhoto() {
   const photo = project.images[index];
   const image = qs('#editorPhoto');
   image.hidden = !photo; qs('#emptyPhotos').hidden = Boolean(photo);
-  if (photo) { image.src = photo.src; image.alt = photo.alt; }
+  if (photo) { image.src = photoPreview.src(photo.src); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
   qs('#photoCount').textContent = (photo ? index + 1 : 0) + ' / ' + project.images.length;
   qsa('[data-photo-field]').forEach(field => {
@@ -74,6 +93,9 @@ function renderPhoto() {
   qs('#nextPhoto').disabled = project.images.length < 2;
   qs('#deletePhoto').disabled = !photo;
   qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
+  const hasNewPhotos = activeStagedPaths().length > 0;
+  qs('#copyContent').disabled = hasNewPhotos;
+  qs('#manualPhotoHelp').hidden = !hasNewPhotos;
   const strip = qs('#photoStrip'); strip.replaceChildren();
   project.images.forEach((photo, photoIndex) => {
     const button = document.createElement('button');
@@ -81,7 +103,7 @@ function renderPhoto() {
     button.dataset.photoIndex = photoIndex;
     button.setAttribute('aria-label', 'Edit photo ' + (photoIndex + 1) + ': ' + photo.title);
     button.setAttribute('aria-pressed', String(photoIndex === index));
-    const image = document.createElement('img'); image.src = photo.src; image.alt = ''; image.loading = 'lazy';
+    const image = document.createElement('img'); image.src = photoPreview.src(photo.src); image.alt = ''; image.loading = 'lazy';
     const number = document.createElement('span'); number.textContent = photoIndex + 1;
     button.append(image, number); strip.append(button);
   });
@@ -118,18 +140,79 @@ async function request(url, token='', options={}) {
   if (!response.ok) {
     if (response.status === 401) throw new Error('GitHub did not accept this token. Check the token or create a new one.');
     if (response.status === 403) throw new Error('GitHub denied access or its rate limit was reached. Check repository Contents write access, then try again.');
-    if (response.status === 409) throw new Error('The published file changed during this save. Download your draft, then load the published version before editing again.');
+    if (response.status === 409 || (options.method === 'PATCH' && response.status === 422)) throw new Error('GitHub could not update the branch. Your draft is still here. Try again or check the repository’s branch settings.');
     if (response.status === 404) throw new Error('GitHub could not open this repository with the provided access. Select Portfolio when creating the token.');
     throw new Error('GitHub could not save the file (HTTP ' + response.status + '). Your draft is still here.');
   }
   return data;
 }
-async function getPublished(token='') {
-  const file = await request(API + '?ref=main', token);
+async function getPublished(token='', ref='main') {
+  const file = await request(API + '?ref=' + ref, token);
   return {sha:file.sha, content:tools.parse(tools.decode(file.content))};
 }
 function matchesBaseline(published) {
   return baseSha ? published.sha === baseSha : tools.serialize(published.content) === tools.serialize(baseline);
+}
+
+async function preparePhoto(file) {
+  if (file.size > MAX_PHOTO_BYTES) throw new Error(file.name + ' exceeds 20 MB.');
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const header = String.fromCharCode(...bytes);
+  let extension;
+  if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) extension = 'jpg';
+  else if (header.startsWith('\x89PNG\r\n\x1a\n')) extension = 'png';
+  else if (header.startsWith('RIFF') && header.slice(8) === 'WEBP') extension = 'webp';
+  else if (header.startsWith('GIF87a') || header.startsWith('GIF89a')) extension = 'gif';
+  else throw new Error(file.name + ' must be a JPG, PNG, WebP, or GIF image.');
+  const blob = file.slice(0, file.size, 'image/' + (extension === 'jpg' ? 'jpeg' : extension));
+  try {
+    const image = await createImageBitmap(blob);
+    image.close();
+  } catch {
+    throw new Error(file.name + ' could not be opened as an image.');
+  }
+  const id = crypto.randomUUID();
+  const src = 'assets/photos/' + id + '.' + extension;
+  const title = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim() || 'Project photo';
+  return {blob, photo:{id, src, title, caption:'', alt:title}};
+}
+
+async function publishDraft(snapshot, paths, token) {
+  const source = tools.serialize(snapshot);
+  const message = 'Update portfolio projects, photos, and captions';
+  const body = data => JSON.stringify(data);
+  const head = paths.length ? (await request(GIT_API + '/ref/heads/main', token)).object.sha : null;
+  const published = await getPublished(token, head || 'main');
+  if (!matchesBaseline(published)) {
+    if (head && tools.serialize(published.content) === source) return {blobSha:published.sha, commitSha:head};
+    throw new Error('GitHub has newer changes than this draft. Download your draft before loading the published version.');
+  }
+  if (!head) {
+    const result = await request(API, token, {method:'PUT', body:body({
+      message, content:tools.encode(source), sha:published.sha, branch:'main'
+    })});
+    return {blobSha:result.content.sha, commitSha:result.commit.sha};
+  }
+  const files = await Promise.all(paths.map(tools.readPhotoFile));
+  if (files.some(file => !file)) throw new Error('A new photo is missing from this browser. Delete the missing photo from the draft and add it again.');
+  const parent = await request(GIT_API + '/commits/' + head, token);
+  const tree = [{path:'content.js', mode:'100644', type:'blob', content:source}];
+  for (const [index, file] of files.entries()) {
+    publishStatus('Uploading photo ' + (index + 1) + ' of ' + files.length + '…');
+    const image = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+    const blob = await request(GIT_API + '/blobs', token, {method:'POST', body:body({content:image, encoding:'base64'})});
+    tree.push({path:paths[index], mode:'100644', type:'blob', sha:blob.sha});
+  }
+  publishStatus('Saving photos and project text to GitHub…');
+  const nextTree = await request(GIT_API + '/trees', token, {method:'POST', body:body({base_tree:parent.tree.sha, tree})});
+  const commit = await request(GIT_API + '/commits', token, {method:'POST', body:body({message, tree:nextTree.sha, parents:[head]})});
+  await request(GIT_API + '/refs/heads/main', token, {method:'PATCH', body:body({sha:commit.sha, force:false})});
+  return {blobSha:null, commitSha:commit.sha};
 }
 
 qsa('[data-field]').forEach(field => field.addEventListener('input', () => {
@@ -144,7 +227,47 @@ qsa('[data-photo-field]').forEach(field => field.addEventListener('input', () =>
   if (field.dataset.photoField === 'alt') qs('#editorPhoto').alt = field.value;
   edited = true; saveDraft();
 }));
-qs('#projectSelect').addEventListener('change', event => { selectedProject = event.target.value; renderProject(); });
+qs('#projectSelect').addEventListener('change', event => { selectedProject = event.target.value; uploadStatus(''); renderProject(); });
+qs('#addPhotos').addEventListener('change', async event => {
+  const files = [...event.target.files];
+  event.target.value = '';
+  if (busy || !files.length) return;
+  busy = true;
+  setEnabled(false);
+  uploadStatus('Adding photos to your draft…');
+  let paths = [];
+  try {
+    const photos = [];
+    for (const file of files) photos.push(await preparePhoto(file));
+    paths = photos.map(({photo}) => photo.src);
+    await tools.savePhotoFiles(photos);
+    await photoPreview.load(paths);
+    const project = content.projects[selectedProject];
+    const first = project.images.length;
+    const previousPosition = positions.get(selectedProject);
+    const wasEdited = edited;
+    project.images.push(...photos.map(({photo}) => photo));
+    stagedPaths.push(...paths);
+    positions.set(selectedProject, first);
+    edited = true;
+    if (!saveDraft()) {
+      project.images.splice(first);
+      stagedPaths.splice(-paths.length);
+      positions.set(selectedProject, previousPosition);
+      edited = wasEdited;
+      postPreview();
+      throw new Error('This browser could not save the new photos to your draft.');
+    }
+    renderPhoto();
+    uploadStatus(photos.length === 1 ? 'Photo added to your draft.' : photos.length + ' photos added to your draft.');
+  } catch (error) {
+    await tools.removePhotoFiles(paths).catch(() => {});
+    uploadStatus(error.message || 'This browser could not save the photos. Please try again.', true);
+  } finally {
+    busy = false;
+    setEnabled(true);
+  }
+});
 qs('#previousPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) - 1));
 qs('#nextPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) + 1));
 qs('#deletePhoto').addEventListener('click', () => {
@@ -178,7 +301,9 @@ qs('#downloadContent').addEventListener('click', () => {
   const link = document.createElement('a'); link.href = url; link.download = 'content.js';
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  publishStatus('Downloaded your draft. Upload this content.js to the repository to publish it.');
+  publishStatus(activeStagedPaths().length
+    ? 'Downloaded your project text and captions. Use Publish to GitHub to publish the new photos.'
+    : 'Downloaded your draft. Upload this content.js to the repository to publish it.');
 });
 qs('#copyContent').addEventListener('click', async () => {
   const source = tools.serialize(content);
@@ -199,7 +324,12 @@ qs('#reloadPublished').addEventListener('click', async () => {
     const published = await getPublished();
     content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
     removedPhotos = {};
-    renderProjectSelect(); renderProject(); saveDraft(); publishStatus('Loaded the published version.');
+    const previousPaths = stagedPaths;
+    stagedPaths = [];
+    uploadStatus('');
+    renderProjectSelect(); renderProject();
+    if (saveDraft()) await tools.removePhotoFiles(previousPaths).catch(() => {});
+    publishStatus('Loaded the published version.');
   } catch (error) { status(error.message, true); }
   finally { busy = false; setEnabled(true); }
 });
@@ -211,16 +341,19 @@ qs('#publishForm').addEventListener('submit', async event => {
   busy = true; setEnabled(false); qs('#githubToken').disabled = true;
   qs('#publishButton').textContent = 'Publishing…'; publishStatus('Checking the current published version…');
   try {
-    const published = await getPublished(token);
-    if (!matchesBaseline(published)) throw new Error('GitHub has newer changes than this draft. Download your draft, then load the published version to avoid overwriting those changes.');
     const snapshot = tools.clone(content);
-    const result = await request(API, token, {method:'PUT', body:JSON.stringify({message:'Update portfolio projects, photos, and captions', content:tools.encode(tools.serialize(snapshot)), sha:published.sha, branch:'main'})});
-    baseSha = result.content.sha; baseline = tools.clone(snapshot); edited = false;
-    removedPhotos = {}; renderPhoto();
-    saveDraft(false); status('Saved to GitHub. The public site will update when GitHub Pages finishes publishing.');
+    const result = await publishDraft(snapshot, activeStagedPaths(), token);
+    baseSha = result.blobSha; baseline = tools.clone(snapshot); edited = false;
+    removedPhotos = {};
+    const previousPaths = stagedPaths;
+    stagedPaths = [];
+    uploadStatus('');
+    renderPhoto();
+    if (saveDraft(false)) await tools.removePhotoFiles(previousPaths).catch(() => {});
+    status('Saved to GitHub. The public site will update when GitHub Pages finishes publishing.');
     publishStatus('Published to GitHub. ');
     const link = document.createElement('a'); link.textContent = 'View the saved change ↗';
-    link.href = 'https://github.com/yienliu84/Portfolio/commit/' + result.commit.sha;
+    link.href = 'https://github.com/yienliu84/Portfolio/commit/' + result.commitSha;
     link.target = '_blank'; link.rel = 'noopener noreferrer'; qs('#publishStatus').append(link);
   } catch (error) { publishStatus(error.message, true); saveDraft(false); }
   finally {
@@ -230,7 +363,9 @@ qs('#publishForm').addEventListener('submit', async event => {
 });
 
 async function initialize() {
-  renderProjectSelect(); renderProject(); setEnabled(false);
+  setEnabled(false);
+  await photoPreview.load(activeStagedPaths()).catch(() => {});
+  renderProjectSelect(); renderProject();
   try {
     const published = await getPublished();
     if (draft && edited) {
@@ -242,7 +377,7 @@ async function initialize() {
       }
     } else {
       content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
-      removedPhotos = {};
+      removedPhotos = {}; stagedPaths = [];
       renderProjectSelect(); renderProject(); saveDraft();
     }
   } catch {
