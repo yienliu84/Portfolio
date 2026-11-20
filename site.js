@@ -36,10 +36,17 @@ function specificationGroups(lines=[]) {
 }
 
 function pauseVideos(root=document) {
-  qsa('video', root).forEach(video => video.pause());
+  qsa('video', root).forEach(video => { video.autoplay = false; video.pause(); });
+}
+function playSlideVideo(video) {
+  if (!video) return;
+  video.muted = true;
+  video.autoplay = true;
+  // Keep the native play button available if a browser declines autoplay.
+  video.play()?.catch(() => {});
 }
 function cardMediaHtml(key, photo) {
-  if (photo.type === 'video') return `<video class="project-video" src="${esc(photoSrc(photo))}" controls playsinline preload="metadata" aria-label="${esc(photo.alt || photo.title)}"></video><button class="video-details" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}">Enlarge video</button>`;
+  if (photo.type === 'video') return `<video class="project-video" src="${esc(photoSrc(photo))}" controls muted ${dialog.open ? '' : 'autoplay'} playsinline preload="metadata" aria-label="${esc(photo.alt || photo.title)}"></video><button class="video-details" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}">Enlarge video</button>`;
   return `<button class="photo-open" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}"><img class="project-photo" src="${esc(photoSrc(photo))}" alt="${esc(photo.alt)}" loading="lazy" decoding="async"><span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span></button>`;
 }
 function galleryHtml(key, project) {
@@ -152,6 +159,7 @@ function setPhoto(key, requestedIndex) {
     qs('[data-photo-count]', gallery).textContent = (index + 1) + ' / ' + project.images.length;
   }
   if (dialog.open && dialog.dataset.project === key) updateModalPhoto(key);
+  else if (gallery && !dialog.open) playSlideVideo(qs('video', gallery));
 }
 function updateModalPhoto(key) {
   const project = CONTENT.projects[key];
@@ -160,12 +168,13 @@ function updateModalPhoto(key) {
   positions.set(key, index);
   const image = qs('#modalMainImage');
   const video = qs('#modalMainVideo');
-  video.pause(); video.removeAttribute('src'); video.load();
+  video.autoplay = false; video.pause(); video.removeAttribute('src'); video.load();
   image.hidden = !photo || photo.type === 'video';
   video.hidden = photo?.type !== 'video';
   if (photo?.type === 'video') {
     video.src = photoSrc(photo); video.setAttribute('aria-label', photo.alt || photo.title);
     image.removeAttribute('src');
+    playSlideVideo(video);
   } else if (photo) { image.src = photoSrc(photo); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
   let empty = qs('.photo-empty-message', qs('.modal-photo-stage'));
@@ -205,10 +214,10 @@ function openProject(key, trigger) {
   }
   updateModalPhoto(key); document.body.style.overflow = 'hidden';
 }
-function closeProject() { dialog.close(); }
+function closeProject() { pauseVideos(dialog); dialog.close(); }
 function initInteractions() {
   document.addEventListener('play', event => {
-    if (event.target.tagName === 'VIDEO') qsa('video').forEach(video => { if (video !== event.target) video.pause(); });
+    if (event.target.tagName === 'VIDEO') qsa('video').forEach(video => { if (video !== event.target) { video.autoplay = false; video.pause(); } });
   }, true);
   document.addEventListener('click', event => {
     const open = event.target.closest('[data-open-project]');

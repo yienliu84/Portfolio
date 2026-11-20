@@ -92,12 +92,14 @@ function renderPhoto() {
   const photo = project.images[index];
   const image = qs('#editorPhoto');
   const video = qs('#editorVideo');
-  video.pause(); video.removeAttribute('src'); video.load();
+  video.autoplay = false; video.pause(); video.removeAttribute('src'); video.load();
   image.hidden = !photo || photo.type === 'video';
   video.hidden = photo?.type !== 'video';
   qs('#addPhotoSlide').hidden = Boolean(photo);
   if (photo?.type === 'video') {
+    video.muted = true; video.autoplay = true;
     video.src = photoPreview.src(photo.src); video.setAttribute('aria-label', photo.alt || photo.title);
+    video.play()?.catch(() => {});
     image.removeAttribute('src');
   } else if (photo) { image.src = photoPreview.src(photo.src); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
