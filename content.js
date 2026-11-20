@@ -1,4 +1,4 @@
-/* Project text and photo captions. Use edit.html for a visual editor. */
+/* Project text and media captions. Use edit.html for a visual editor. */
 window.PORTFOLIO_CONTENT = {
   "hero": {
     "eyebrow": "Portfolio // Mechanical + Electromechanical Systems",
@@ -207,6 +207,14 @@ window.PORTFOLIO_CONTENT = {
         ]
       },
       "images": [
+        {
+          "id": "6bf6108d-9cea-4bfc-958e-cf740fca7076",
+          "src": "assets/videos/6bf6108d-9cea-4bfc-958e-cf740fca7076.mp4",
+          "type": "video",
+          "title": "MERV Drive Test",
+          "caption": "MERV's ESP32-based WiFi browser interface joystick control is displayed",
+          "alt": ""
+        },
         {
           "id": "dae066ee-dab9-4ee4-8045-35be0551e59f",
           "src": "assets/photos/dae066ee-dab9-4ee4-8045-35be0551e59f.png",
