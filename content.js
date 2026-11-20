@@ -110,65 +110,65 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "e56d55b4-986c-4b2f-ad49-85ee59a5bdb3",
-          "src": "assets/photos/e56d55b4-986c-4b2f-ad49-85ee59a5bdb3.png",
+          "src": "assets/photos/8fb38534-30ec-4116-be2d-a30981d5c27e.png",
           "title": "Isometric View",
           "caption": "Manta Gator V1 is designed to be 3D printed and assembled in 10 primary parts. 2 wings, a center body, 3 control surfaces, and 4 vertical stabilizers. Other smaller parts include 10 hinge clips, a hatch, and a hatch bolt. ",
           "alt": ""
         },
         {
           "id": "95c2171d-1fdc-4a9b-acb4-4b1cc73433f4",
-          "src": "assets/photos/95c2171d-1fdc-4a9b-acb4-4b1cc73433f4.png",
+          "src": "assets/photos/61ef93af-f69c-4df2-b533-327f7214869c.png",
           "title": "Top Down View",
           "caption": "The Manta Gator's splined body shape is displayed. The unique 3-control-surface, 4-vertical-stabilizer design is shown. This design lets the Manta Gator perform VTOL using its vertical stabilizers.",
           "alt": ""
         },
         {
           "id": "74b7393b-b1e5-40a4-a86c-df63710afdf2",
-          "src": "assets/photos/74b7393b-b1e5-40a4-a86c-df63710afdf2.png",
+          "src": "assets/photos/3ad280e7-f55e-4059-b891-4cba1329343d.png",
           "title": "Side View",
           "caption": "Displays zero camber airfoil and vertical stabilizer geometry. A zero-camber airfoil is crucial for maintaining neutrality in aquatic operations. ",
           "alt": ""
         },
         {
           "id": "4ccccece-ebde-4cec-973d-e4cbd9c1e576",
-          "src": "assets/photos/4ccccece-ebde-4cec-973d-e4cbd9c1e576.png",
+          "src": "assets/photos/1e2c390e-0438-49a0-a6bd-f7f78dc5c354.png",
           "title": "Control Horn Section view",
           "caption": "The pushrod control surface actuation system is shown.",
           "alt": ""
         },
         {
           "id": "d2ca11de-56c3-40ad-9033-e6d173805086",
-          "src": "assets/photos/d2ca11de-56c3-40ad-9033-e6d173805086.png",
+          "src": "assets/photos/0b67af17-ac42-4c00-99a4-c108b739f06c.png",
           "title": "Vertical Stabilizer Section View",
           "caption": "The vertical stabilizer section view shows 3, 1.5 mm carbon fiber rods used for alignment, assembly, and rigidity.",
           "alt": ""
         },
         {
           "id": "2959e913-3bd1-4d30-ad20-64df175b387c",
-          "src": "assets/photos/2959e913-3bd1-4d30-ad20-64df175b387c.png",
+          "src": "assets/photos/f4bc3211-5378-4388-bc1c-d06c82db21fb.png",
           "title": "Hinge Design",
           "caption": "The hinge clip design allows for control surfaces to be manufactured from carbon fiber, while hinges are 3D printed. The hinge clips into the control surface, and a 1.5 mm carbon fiber rod is inserted to act as a hinge line.",
           "alt": ""
         },
         {
+          "id": "5c69ebcd-b56d-4aa8-b9b7-df73b48f016e",
+          "src": "assets/photos/68bb5843-b5a8-480d-aed9-25ee58d959a7.png",
+          "title": "Servo Open Hatch View",
+          "caption": "The removable, 3D-printed, spring-locked hatch provides a 17x8.5 cm region for access to electronics. The hatch also has a lip, allowing for future waterproofing via a rubber gasket.",
+          "alt": ""
+        },
+        {
           "id": "ef14043f-a36a-4446-9687-841c8874ec7d",
-          "src": "assets/photos/ef14043f-a36a-4446-9687-841c8874ec7d.png",
+          "src": "assets/photos/1fbaa619-2421-461b-a420-33c60fe71be5.png",
           "title": "Frame Section View",
-          "caption": "The internal webbed structure in the wings is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
+          "caption": "The internal webbed structure in the wings and electronics layout is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
           "alt": ""
         },
         {
           "id": "a5073eb4-595f-4fc7-9515-7230425a7d87",
-          "src": "assets/photos/a5073eb4-595f-4fc7-9515-7230425a7d87.png",
+          "src": "assets/photos/1959404e-d852-4de3-b424-c24bf6e22ebc.png",
           "title": "Curvature Analysis",
           "caption": "Curvature analysis of the leading edge was done to evaluate airfoil smoothness.",
-          "alt": ""
-        },
-        {
-          "id": "5c69ebcd-b56d-4aa8-b9b7-df73b48f016e",
-          "src": "assets/photos/5c69ebcd-b56d-4aa8-b9b7-df73b48f016e.png",
-          "title": "Servo Open Hatch View",
-          "caption": "The removable, 3D-printed, spring-locked hatch provides a 17x8.5 cm region for access to electronics. The hatch also has a lip, allowing for future waterproofing via a rubber gasket.",
           "alt": ""
         }
       ]
