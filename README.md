@@ -36,3 +36,7 @@ New files remain in this browser's draft until **Publish to GitHub** uploads the
 ## Optional project specifications
 
 Each project has a **Specifications (optional) — headings and bullet points** field below Highlights in the editor. Enter hardware, software features, dimensions, materials, or performance specs on separate lines. The project details show these as a separate Specifications section styled like Highlights. Put a heading on its own line ending with a colon (for example, `Hardware:`), followed by its bullet points, one per line. Add more headings such as `Software:` the same way. Plain lists without headings continue to work. Headings without bullet points are hidden. Leave the field blank to hide the entire section. Specifications use the same draft preview, browser recovery, download, and publishing controls as other project text.
+
+## Replace a project photo
+
+Select the project and current photo in the editor, choose **Replace photo**, and select a JPG, PNG, WebP, or GIF image up to 20 MB. The replacement keeps the existing title, caption, screen-reader description, ID, and gallery position. Replacements are saved in this browser’s draft and preview immediately. **Undo replacement** restores earlier images for that photo until publishing, including after reloading the editor. Use **Publish to GitHub** to save the new image and project content together.

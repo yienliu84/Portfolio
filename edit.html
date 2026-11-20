@@ -37,6 +37,7 @@
       </fieldset>
       <fieldset id="photoFields"><legend>Project photos and videos</legend>
         <input id="addPhotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm" multiple hidden>
+        <input id="replacementPhoto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" hidden>
         <button id="uploadMediaButton" type="button">Add photos or videos</button>
         <p class="photo-help">Photos: up to 20 MB each. Videos: MP4 or WebM, up to 25 MB each. For best compatibility, export MP4 with H.264 video and AAC audio. Videos play when visitors press play.</p>
         <p id="uploadStatus" class="photo-help" role="status" hidden></p>
@@ -56,6 +57,8 @@
           <button id="movePhotoEarlier" type="button">← Move earlier</button>
           <button id="movePhotoLater" type="button">Move later →</button>
         </div>
+        <div class="photo-actions"><button id="replacePhoto" type="button" aria-describedby="replacePhotoHelp" disabled>Replace photo</button><button id="undoReplacement" type="button" disabled>Undo replacement</button></div>
+        <p id="replacePhotoHelp" class="photo-help">Replace the selected photo while keeping its title, caption, description, and gallery position. JPG, PNG, WebP, or GIF, up to 20 MB. Undo replacement is available until you publish.</p>
         <div class="photo-actions"><button id="deletePhoto" class="danger" type="button">Delete selected media</button><button id="undoPhoto" type="button" disabled>Undo deletion</button></div>
         <p class="photo-help">Deletes the selected photo or video from this project. Publish to update the portfolio, or undo the deletion before publishing.</p>
         <label class="field"><span>Photo or video title</span><input id="photoTitle" data-photo-field="title" type="text"></label>
@@ -78,6 +81,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1&amp;v=9#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1&amp;v=9#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js?v=7"></script><script src="editor.js?v=11"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=7"></script><script src="editor.js?v=12"></script>
 </body>
 </html>

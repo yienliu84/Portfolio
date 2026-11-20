@@ -16,7 +16,9 @@ let baseline = tools.clone(draft?.baseline || window.PORTFOLIO_CONTENT);
 let baseSha = draft?.baseSha || null;
 let edited = Boolean(draft?.edited);
 let removedPhotos = tools.clone(draft?.removedPhotos || {});
+let replacedPhotos = tools.clone(draft?.replacedPhotos || {});
 let stagedPaths = draft?.stagedPaths || [];
+let replacementTarget = null;
 const photoPreview = tools.createPhotoPreview();
 let busy = false;
 let draggedThumbnail = null;
@@ -63,7 +65,7 @@ function postPreview() {
 function saveDraft(showStatus=true) {
   let saved = false;
   try {
-    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, removedPhotos, stagedPaths, savedAt:Date.now()}));
+    localStorage.setItem(tools.DRAFT_KEY, JSON.stringify({version:3, content, baseline, baseSha, edited, removedPhotos, replacedPhotos, stagedPaths, savedAt:Date.now()}));
     saved = true;
     if (showStatus) status(edited ? 'Draft saved on this browser — not published yet.' : 'Showing the published portfolio.');
   } catch {
@@ -110,6 +112,8 @@ function renderPhoto() {
   next.textContent = nextAddsPhotos ? 'Add media →' : 'Next →';
   next.setAttribute('aria-label', nextAddsPhotos ? 'Next slide: Add media' : 'Next slide');
   qs('#deletePhoto').disabled = !photo;
+  qs('#replacePhoto').disabled = !photo || photo.type === 'video';
+  qs('#undoReplacement').disabled = !photo || !(replacedPhotos[selectedProject]?.[photo.id]?.length);
   qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
   qs('#photoOrderControls').hidden = count < 2;
   qs('#movePhotoEarlier').disabled = !photo || index === 0;
@@ -361,6 +365,80 @@ qs('#addPhotos').addEventListener('change', async event => {
 });
 qs('#previousPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) - 1));
 qs('#nextPhoto').addEventListener('click', () => movePhoto((positions.get(selectedProject) || 0) + 1));
+qs('#replacePhoto').addEventListener('click', () => {
+  const photo = activePhoto();
+  if (busy || !photo || photo.type === 'video') return;
+  replacementTarget = {project:selectedProject, id:photo.id};
+  qs('#replacementPhoto').click();
+});
+qs('#replacementPhoto').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  event.target.value = '';
+  const target = replacementTarget;
+  replacementTarget = null;
+  if (busy || !file || !target) return;
+  const project = content.projects[target.project];
+  const index = project?.images.findIndex(photo => photo.id === target.id);
+  const photo = project?.images[index];
+  if (target.project !== selectedProject || !photo || photo.type === 'video') {
+    uploadStatus('Select the photo you want to replace and try again.', true);
+    return;
+  }
+  busy = true; setEnabled(false);
+  uploadStatus('Replacing the photo in your draft…');
+  let path;
+  let saved = false;
+  try {
+    const replacement = await preparePhoto(file);
+    if (replacement.photo.type === 'video') throw new Error('Choose a JPG, PNG, WebP, or GIF image to replace this photo.');
+    path = replacement.photo.src;
+    await tools.savePhotoFiles([replacement]);
+    await photoPreview.load([path]);
+    const previousSrc = photo.src;
+    const wasEdited = edited;
+    const history = ((replacedPhotos[selectedProject] ||= {})[photo.id] ||= []);
+    history.push(previousSrc);
+    photo.src = path;
+    stagedPaths.push(path);
+    edited = true;
+    if (!saveDraft()) {
+      photo.src = previousSrc; history.pop(); stagedPaths.pop(); edited = wasEdited;
+      postPreview();
+      throw new Error('This browser could not save the replacement. Your original photo is unchanged.');
+    }
+    saved = true;
+    positions.set(selectedProject, index);
+    renderPhoto();
+    uploadStatus('Photo replaced in your draft. Title, caption, and gallery position are preserved. Publish to update the portfolio.');
+  } catch (error) {
+    if (path && !saved) await tools.removePhotoFiles([path]).catch(() => {});
+    uploadStatus(error.message || 'The photo could not be replaced. Please try again.', true);
+  } finally { busy = false; setEnabled(true); }
+});
+qs('#undoReplacement').addEventListener('click', async () => {
+  const photo = activePhoto();
+  const history = photo && replacedPhotos[selectedProject]?.[photo.id];
+  if (busy || !history?.length) return;
+  busy = true; setEnabled(false);
+  try {
+    const previousSrc = history.at(-1);
+    if (stagedPaths.includes(previousSrc) && !await tools.readPhotoFile(previousSrc)) {
+      throw new Error('The previous replacement is missing from this browser. Replace the photo again using the original image.');
+    }
+    await photoPreview.load([previousSrc]);
+    const currentSrc = photo.src;
+    const wasEdited = edited;
+    photo.src = history.pop(); edited = true;
+    if (!saveDraft()) {
+      history.push(previousSrc); photo.src = currentSrc; edited = wasEdited;
+      postPreview();
+      throw new Error('This browser could not save the undo. Your current photo is unchanged.');
+    }
+    renderPhoto();
+    uploadStatus('Previous photo restored to your draft.');
+  } catch (error) { uploadStatus(error.message, true); }
+  finally { busy = false; setEnabled(true); }
+});
 qs('#deletePhoto').addEventListener('click', () => {
   if (busy || !activePhoto()) return;
   const project = content.projects[selectedProject];
@@ -461,7 +539,7 @@ qs('#reloadPublished').addEventListener('click', async () => {
   try {
     const published = await getPublished();
     content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
-    removedPhotos = {};
+    removedPhotos = {}; replacedPhotos = {};
     const previousPaths = stagedPaths;
     stagedPaths = [];
     uploadStatus('');
@@ -482,7 +560,7 @@ qs('#publishForm').addEventListener('submit', async event => {
     const snapshot = tools.clone(content);
     const result = await publishDraft(snapshot, activeStagedPaths(), token);
     baseSha = result.blobSha; baseline = tools.clone(snapshot); edited = false;
-    removedPhotos = {};
+    removedPhotos = {}; replacedPhotos = {};
     const previousPaths = stagedPaths;
     stagedPaths = [];
     uploadStatus('');
@@ -519,7 +597,7 @@ async function initialize() {
       }
     } else {
       content = tools.clone(published.content); baseline = tools.clone(published.content); baseSha = published.sha; edited = false;
-      removedPhotos = {}; stagedPaths = [];
+      removedPhotos = {}; replacedPhotos = {}; stagedPaths = [];
       renderProjectSelect(); renderProject(); saveDraft();
     }
   } catch {
