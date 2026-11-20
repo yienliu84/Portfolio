@@ -97,7 +97,8 @@ window.PORTFOLIO_CONTENT = {
           "Parametric CAD",
           "VTOL",
           "Propulsion"
-        ]
+        ],
+        "specifications": []
       },
       "images": [
         {
@@ -205,6 +206,26 @@ window.PORTFOLIO_CONTENT = {
           "DfAM",
           "Embedded Systems",
           "Project Management"
+        ],
+        "specifications": [
+          "Hardware:",
+          "2 120 W 24V Brushed DC motors w/encoders",
+          "6S Lipo Battery",
+          "ESP32 microcontroller",
+          "MDD20A dual motor driver (20A continuous)",
+          "Attachable TPU padded tread links",
+          "PETG tread links",
+          "Attachable PETG tread bracket",
+          "Adjustable tread chain tensioner",
+          "Software:",
+          "ESP32-based control w/browser interface hosted on rover’s WiFi access point",
+          "Wireless joystick control",
+          "Dual-motor drive using 20 kHz, 10-bit PWM",
+          "Quadrature encoder feedback for both treads w/live RPM speed readings",
+          "Tuned closed loop PID speed controller",
+          "Tread synchronization",
+          "Acceleration/Deceleration ramping",
+          "Speed limiter"
         ]
       },
       "images": [
