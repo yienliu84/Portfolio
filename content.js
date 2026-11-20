@@ -181,7 +181,8 @@ window.PORTFOLIO_CONTENT = {
       "title": "Modular Educational Robotic Vehicle (M.E.R.V.)",
       "summary": "FDM-printed modular robotics platform with a tracked drivetrain, magnetic clip chassis, and distributed embedded architecture.",
       "cardTags": [
-        "DfAM",
+        "DFAM",
+        "DFM",
         "FEA",
         "Embedded",
         "Leadership"
@@ -194,7 +195,7 @@ window.PORTFOLIO_CONTENT = {
         "bullets": [
           "Leading a 10+ member team across 3 sub-teams and training 5+ new members in DFAM, FDM printing, mechanical design, embedded systems, and Fusion 360.",
           "Engineering the tread drivetrain, including gears, treads, driveshaft, mounting brackets, and a brushed DC motor interface.",
-          "Developing magnetic clip chassis connections and a master-slave microcontroller architecture for interchangeable mechatronic modules.",
+          "Developing clip chassis connections and a master-slave microcontroller architecture for interchangeable electrical and mechanical modules.",
           "Running Fusion 360 static stress FEA on critical chassis and drivetrain components."
         ],
         "tags": [
@@ -208,18 +209,18 @@ window.PORTFOLIO_CONTENT = {
       },
       "images": [
         {
+          "id": "dae066ee-dab9-4ee4-8045-35be0551e59f",
+          "src": "assets/photos/dae066ee-dab9-4ee4-8045-35be0551e59f.png",
+          "title": "Tread Test Isometric View",
+          "caption": "Tread design, movement, and controls are being tested using the shown setup. This setup includes 2 31-link tread chains, 4 sprockets, 4 bevel gears, 2 brushed DC motors, attachable tread brackets, and a flat plate for electronics.",
+          "alt": ""
+        },
+        {
           "id": "6bf6108d-9cea-4bfc-958e-cf740fca7076",
           "src": "assets/videos/6bf6108d-9cea-4bfc-958e-cf740fca7076.mp4",
           "type": "video",
           "title": "MERV Drive Test",
           "caption": "MERV's ESP32-based WiFi browser interface joystick control is displayed",
-          "alt": ""
-        },
-        {
-          "id": "dae066ee-dab9-4ee4-8045-35be0551e59f",
-          "src": "assets/photos/dae066ee-dab9-4ee4-8045-35be0551e59f.png",
-          "title": "Tread Test Isometric View",
-          "caption": "Tread design, movement, and controls are being tested using the shown setup. This setup includes 2 31-link tread chains, 4 sprockets, 4 bevel gears, 2 brushed DC motors, attachable tread brackets, and a flat plate for electronics.",
           "alt": ""
         },
         {
