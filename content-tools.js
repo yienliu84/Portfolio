@@ -20,7 +20,10 @@ window.PortfolioContentTools = (() => {
       const ids = new Set();
       return project.images.every(photo => {
         if (!photo || !['id', 'src', 'alt', 'title', 'caption'].every(key => typeof photo[key] === 'string')) return false;
-        if (!/^assets\/photos\/[a-z0-9-]+\.(?:svg|jpg|png|webp|gif)$/.test(photo.src) || ids.has(photo.id)) return false;
+        const validSource = photo.type === 'video'
+          ? /^assets\/videos\/[a-z0-9-]+\.(?:mp4|webm)$/.test(photo.src)
+          : (!photo.type || photo.type === 'image') && /^assets\/photos\/[a-z0-9-]+\.(?:svg|jpg|png|webp|gif)$/.test(photo.src);
+        if (!validSource || ids.has(photo.id)) return false;
         ids.add(photo.id);
         return true;
       });
@@ -32,13 +35,13 @@ window.PortfolioContentTools = (() => {
     const index = source.indexOf(marker);
     if (index < 0) throw new Error('This file is not in the portfolio content format.');
     const content = JSON.parse(source.slice(index + marker.length).trim().replace(/;\s*$/, ''));
-    if (!validate(content)) throw new Error('The project text or photo entries are incomplete.');
+    if (!validate(content)) throw new Error('The project text or media entries are incomplete.');
     return content;
   }
 
   function serialize(content) {
-    if (!validate(content)) throw new Error('The project text or photo entries are incomplete.');
-    return '/* Project text and photo captions. Use edit.html for a visual editor. */\nwindow.PORTFOLIO_CONTENT = ' + JSON.stringify(content, null, 2) + ';\n';
+    if (!validate(content)) throw new Error('The project text or media entries are incomplete.');
+    return '/* Project text and media captions. Use edit.html for a visual editor. */\nwindow.PORTFOLIO_CONTENT = ' + JSON.stringify(content, null, 2) + ';\n';
   }
 
   function encode(source) {

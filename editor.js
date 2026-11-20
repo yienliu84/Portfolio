@@ -9,6 +9,7 @@ const REPOSITORY_API = 'https://api.github.com/repos/yienliu84/Portfolio';
 const API = REPOSITORY_API + '/contents/content.js';
 const GIT_API = REPOSITORY_API + '/git';
 const MAX_PHOTO_BYTES = 20_000_000;
+const MAX_VIDEO_BYTES = 25_000_000;
 const draft = tools.readDraft();
 let content = tools.clone(draft?.content || window.PORTFOLIO_CONTENT);
 let baseline = tools.clone(draft?.baseline || window.PORTFOLIO_CONTENT);
@@ -88,10 +89,17 @@ function renderPhoto() {
   positions.set(selectedProject, index);
   const photo = project.images[index];
   const image = qs('#editorPhoto');
-  image.hidden = !photo; qs('#addPhotoSlide').hidden = Boolean(photo);
-  if (photo) { image.src = photoPreview.src(photo.src); image.alt = photo.alt; }
+  const video = qs('#editorVideo');
+  video.pause(); video.removeAttribute('src'); video.load();
+  image.hidden = !photo || photo.type === 'video';
+  video.hidden = photo?.type !== 'video';
+  qs('#addPhotoSlide').hidden = Boolean(photo);
+  if (photo?.type === 'video') {
+    video.src = photoPreview.src(photo.src); video.setAttribute('aria-label', photo.alt || photo.title);
+    image.removeAttribute('src');
+  } else if (photo) { image.src = photoPreview.src(photo.src); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
-  qs('#photoCount').textContent = photo ? (index + 1) + ' / ' + count : 'Add photos';
+  qs('#photoCount').textContent = photo ? (index + 1) + ' / ' + count : 'Add media';
   qsa('[data-photo-field]').forEach(field => {
     field.value = photo?.[field.dataset.photoField] || ''; field.disabled = !photo;
   });
@@ -99,8 +107,8 @@ function renderPhoto() {
   const next = qs('#nextPhoto');
   const nextAddsPhotos = Boolean(photo) && index === count - 1;
   next.disabled = count === 0;
-  next.textContent = nextAddsPhotos ? 'Add photos →' : 'Next →';
-  next.setAttribute('aria-label', nextAddsPhotos ? 'Next slide: Add photos' : 'Next slide');
+  next.textContent = nextAddsPhotos ? 'Add media →' : 'Next →';
+  next.setAttribute('aria-label', nextAddsPhotos ? 'Next slide: Add media' : 'Next slide');
   qs('#deletePhoto').disabled = !photo;
   qs('#undoPhoto').disabled = !(removedPhotos[selectedProject]?.length);
   qs('#photoOrderControls').hidden = count < 2;
@@ -116,9 +124,11 @@ function renderPhoto() {
     button.type = 'button'; button.className = 'photo-choice' + (photoIndex === index ? ' active' : '');
     button.dataset.photoIndex = photoIndex;
     button.draggable = count > 1;
-    button.setAttribute('aria-label', 'Edit photo ' + (photoIndex + 1) + ': ' + photo.title);
+    button.setAttribute('aria-label', 'Edit media ' + (photoIndex + 1) + ': ' + photo.title);
     button.setAttribute('aria-pressed', String(photoIndex === index));
-    const image = document.createElement('img'); image.src = photoPreview.src(photo.src); image.alt = ''; image.loading = 'lazy'; image.draggable = false;
+    const image = document.createElement(photo.type === 'video' ? 'span' : 'img');
+    if (photo.type === 'video') { image.className = 'video-thumbnail'; image.textContent = '▶ Video'; }
+    else { image.src = photoPreview.src(photo.src); image.alt = ''; image.loading = 'lazy'; image.draggable = false; }
     const number = document.createElement('span'); number.textContent = photoIndex + 1;
     button.append(image, number); photoStrip.append(button);
   });
@@ -126,7 +136,7 @@ function renderPhoto() {
   add.type = 'button';
   add.className = 'photo-choice add-photo-choice' + (photo ? '' : ' active');
   add.dataset.photoIndex = count;
-  add.setAttribute('aria-label', 'Go to add photos slide');
+  add.setAttribute('aria-label', 'Go to add media slide');
   add.setAttribute('aria-pressed', String(!photo));
   add.textContent = '+';
   photoStrip.append(add);
@@ -211,6 +221,20 @@ function matchesBaseline(published) {
 }
 
 async function preparePhoto(file) {
+  const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|mov|m4v|avi)$/i.test(file.name);
+  if (isVideo) {
+    if (file.size > MAX_VIDEO_BYTES) throw new Error(file.name + ' exceeds 25 MB. Export a shorter or smaller MP4 or WebM video.');
+    const bytes = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+    const header = String.fromCharCode(...bytes);
+    let extension;
+    if (/\.mp4$/i.test(file.name) && header.slice(4, 8) === 'ftyp' && !header.slice(8).includes('qt  ')) extension = 'mp4';
+    else if (/\.webm$/i.test(file.name) && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3 && header.includes('webm')) extension = 'webm';
+    else throw new Error(file.name + ' must be an MP4 or WebM video. Export MP4 with H.264 video and AAC audio for broad browser support.');
+    const blob = file.slice(0, file.size, 'video/' + extension);
+    const id = crypto.randomUUID();
+    const title = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim() || 'Project video';
+    return {blob, photo:{id, src:'assets/videos/' + id + '.' + extension, type:'video', title, caption:'', alt:title}};
+  }
   if (file.size > MAX_PHOTO_BYTES) throw new Error(file.name + ' exceeds 20 MB.');
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   const header = String.fromCharCode(...bytes);
@@ -235,7 +259,7 @@ async function preparePhoto(file) {
 
 async function publishDraft(snapshot, paths, token) {
   const source = tools.serialize(snapshot);
-  const message = 'Update portfolio projects, photos, and captions';
+  const message = 'Update portfolio projects, media, and captions';
   const body = data => JSON.stringify(data);
   const head = paths.length ? (await request(GIT_API + '/ref/heads/main', token)).object.sha : null;
   const published = await getPublished(token, head || 'main');
@@ -253,7 +277,7 @@ async function publishDraft(snapshot, paths, token) {
   const tree = [];
   if (contentAlreadySaved) {
     const publishedTree = await request(GIT_API + '/trees/' + parent.tree.sha + '?recursive=1', token);
-    if (publishedTree.truncated) throw new Error('GitHub could not verify all published photos. Your draft is still here.');
+    if (publishedTree.truncated) throw new Error('GitHub could not verify all published media. Your draft is still here.');
     const existing = new Set(publishedTree.tree.filter(entry => entry.type === 'blob').map(entry => entry.path));
     paths = paths.filter(path => !existing.has(path));
     if (!paths.length) return {blobSha:published.sha, commitSha:head};
@@ -261,9 +285,9 @@ async function publishDraft(snapshot, paths, token) {
     tree.push({path:'content.js', mode:'100644', type:'blob', content:source});
   }
   const files = await Promise.all(paths.map(tools.readPhotoFile));
-  if (files.some(file => !file)) throw new Error('A photo file is missing from this browser’s draft. Open the editor in the browser you used to add it, or add it again from the original file.');
+  if (files.some(file => !file)) throw new Error('A media file is missing from this browser’s draft. Open the editor in the browser you used to add it, or add it again from the original file.');
   for (const [index, file] of files.entries()) {
-    publishStatus('Uploading photo ' + (index + 1) + ' of ' + files.length + '…');
+    publishStatus('Uploading file ' + (index + 1) + ' of ' + files.length + '…');
     const image = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -293,6 +317,7 @@ qsa('[data-photo-field]').forEach(field => field.addEventListener('input', () =>
   edited = true; saveDraft();
 }));
 qs('#projectSelect').addEventListener('change', event => { selectedProject = event.target.value; uploadStatus(''); renderProject(); });
+qs('#uploadMediaButton').addEventListener('click', () => qs('#addPhotos').click());
 qs('#addPhotoSlide').addEventListener('click', () => qs('#addPhotos').click());
 qs('#addPhotos').addEventListener('change', async event => {
   const files = [...event.target.files];
@@ -300,7 +325,7 @@ qs('#addPhotos').addEventListener('change', async event => {
   if (busy || !files.length) return;
   busy = true;
   setEnabled(false);
-  uploadStatus('Adding photos to your draft…');
+  uploadStatus('Adding files to your draft…');
   let paths = [];
   try {
     const photos = [];
@@ -322,13 +347,13 @@ qs('#addPhotos').addEventListener('change', async event => {
       positions.set(selectedProject, previousPosition);
       edited = wasEdited;
       postPreview();
-      throw new Error('This browser could not save the new photos to your draft.');
+      throw new Error('This browser could not save the new media to your draft.');
     }
     renderPhoto();
-    uploadStatus(photos.length === 1 ? 'Photo added to your draft.' : photos.length + ' photos added to your draft.');
+    uploadStatus(photos.length === 1 ? 'File added to your draft.' : photos.length + ' files added to your draft.');
   } catch (error) {
     await tools.removePhotoFiles(paths).catch(() => {});
-    uploadStatus(error.message || 'This browser could not save the photos. Please try again.', true);
+    uploadStatus(error.message || 'This browser could not save the files. Please try again.', true);
   } finally {
     busy = false;
     setEnabled(true);
@@ -344,7 +369,7 @@ qs('#deletePhoto').addEventListener('click', () => {
   project.images.splice(index, 1);
   positions.set(selectedProject, Math.max(0, Math.min(index, project.images.length - 1)));
   edited = true; renderPhoto(); saveDraft();
-  status('Photo deleted from your draft. Undo the deletion or publish to update the portfolio.');
+  status('Media deleted from your draft. Undo the deletion or publish to update the portfolio.');
   if (!project.images.length) qs('#addPhotoSlide').focus();
 });
 qs('#undoPhoto').addEventListener('click', () => {
@@ -355,7 +380,7 @@ qs('#undoPhoto').addEventListener('click', () => {
   const index = Math.min(deletion.index, project.images.length);
   project.images.splice(index, 0, deletion.photo);
   positions.set(selectedProject, index);
-  edited = true; renderPhoto(); saveDraft(); status('Photo restored to your draft.');
+  edited = true; renderPhoto(); saveDraft(); status('Media restored to your draft.');
 });
 photoStrip.addEventListener('click', event => {
   const button = event.target.closest('[data-photo-index]');
@@ -415,7 +440,7 @@ qs('#downloadContent').addEventListener('click', () => {
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   publishStatus(activeStagedPaths().length
-    ? 'Downloaded your project text and captions. Use Publish to GitHub to publish the new photos.'
+    ? 'Downloaded your project text and captions. Use Publish to GitHub to publish the new media.'
     : 'Downloaded your draft. Upload this content.js to the repository to publish it.');
 });
 qs('#copyContent').addEventListener('click', async () => {
@@ -484,7 +509,7 @@ async function initialize() {
     if (draft && edited) {
       if (!matchesBaseline(published)) {
         if (activeStagedPaths().length && tools.serialize(published.content) === tools.serialize(content)) {
-          status('Draft restored. Choose Publish to GitHub to finish saving any photos still missing.');
+          status('Draft restored. Choose Publish to GitHub to finish saving any files still missing.');
         } else {
           status('Draft restored. GitHub has newer changes; download this draft before loading the published version.', true);
         }

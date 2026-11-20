@@ -16,24 +16,28 @@ let previousFocus = null;
 function tagsHtml(tags=[]) { return tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join(''); }
 function specRows(rows=[]) { return rows.map(([key,value]) => `<div class="spec-key">${esc(key)}</div><div class="spec-val">${esc(value)}</div>`).join(''); }
 
+function pauseVideos(root=document) {
+  qsa('video', root).forEach(video => video.pause());
+}
+function cardMediaHtml(key, photo) {
+  if (photo.type === 'video') return `<video class="project-video" src="${esc(photoSrc(photo))}" controls playsinline preload="metadata" aria-label="${esc(photo.alt || photo.title)}"></video><button class="video-details" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}">Enlarge video</button>`;
+  return `<button class="photo-open" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}"><img class="project-photo" src="${esc(photoSrc(photo))}" alt="${esc(photo.alt)}" loading="lazy" decoding="async"><span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span></button>`;
+}
 function galleryHtml(key, project) {
   if (!project.images.length) {
     positions.set(key, 0);
-    return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos"><div class="project-media photo-empty"><p>No photos added.</p></div></div>`;
+    return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos and videos"><div class="project-media photo-empty"><p>No photos or videos added.</p></div></div>`;
   }
   const index = Math.min(positions.get(key) || 0, project.images.length - 1);
   const photo = project.images[index];
   positions.set(key, index);
-  return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos">
-    <div class="project-media photo-stage">
-      <button class="photo-open" type="button" data-open-project="${esc(key)}" aria-haspopup="dialog" aria-label="Enlarge ${esc(photo.title)}">
-        <img class="project-photo" src="${esc(photoSrc(photo))}" alt="${esc(photo.alt)}" loading="lazy" decoding="async">
-        <span class="enlarge-hint" aria-hidden="true">Enlarge ↗</span>
-      </button>
+  return `<div class="photo-gallery" data-gallery="${esc(key)}" role="group" aria-label="${esc(project.title)} photos and videos">
+    <div class="project-media photo-stage${photo.type === 'video' ? ' has-video' : ''}">
+      <div class="card-media">${cardMediaHtml(key, photo)}</div>
       <div class="photo-nav">
-        <button type="button" data-photo-step="-1" data-photo-project="${esc(key)}" aria-label="Previous ${esc(project.title)} photo"${project.images.length < 2 ? ' disabled' : ''}>←</button>
+        <button type="button" data-photo-step="-1" data-photo-project="${esc(key)}" aria-label="Previous ${esc(project.title)} media"${project.images.length < 2 ? ' disabled' : ''}>←</button>
         <span data-photo-count aria-live="polite">${index + 1} / ${project.images.length}</span>
-        <button type="button" data-photo-step="1" data-photo-project="${esc(key)}" aria-label="Next ${esc(project.title)} photo"${project.images.length < 2 ? ' disabled' : ''}>→</button>
+        <button type="button" data-photo-step="1" data-photo-project="${esc(key)}" aria-label="Next ${esc(project.title)} media"${project.images.length < 2 ? ' disabled' : ''}>→</button>
       </div>
     </div>
     <div class="photo-description"><strong data-photo-title>${esc(photo.title)}</strong><p data-photo-caption${photo.caption ? '' : ' hidden'}>${esc(photo.caption)}</p></div>
@@ -41,6 +45,7 @@ function galleryHtml(key, project) {
 }
 
 function renderContent() {
+  pauseVideos();
   const h = CONTENT.hero;
   qs('#heroEyebrow').textContent = h.eyebrow;
   qs('#heroName').innerHTML = `${esc(h.firstName)} <span class="outline">${esc(h.lastName)}</span>`;
@@ -119,8 +124,9 @@ function setPhoto(key, requestedIndex) {
   const photo = project.images[index];
   const gallery = qsa('[data-gallery]').find(item => item.dataset.gallery === key);
   if (gallery) {
-    qs('.project-photo', gallery).src = photoSrc(photo); qs('.project-photo', gallery).alt = photo.alt;
-    qs('.photo-open', gallery).setAttribute('aria-label', 'Enlarge ' + photo.title);
+    pauseVideos(gallery);
+    qs('.photo-stage', gallery).classList.toggle('has-video', photo.type === 'video');
+    qs('.card-media', gallery).innerHTML = cardMediaHtml(key, photo);
     qs('[data-photo-title]', gallery).textContent = photo.title;
     const caption = qs('[data-photo-caption]', gallery);
     caption.textContent = photo.caption; caption.hidden = !photo.caption;
@@ -133,16 +139,23 @@ function updateModalPhoto(key) {
   const index = Math.max(0, Math.min(positions.get(key) || 0, project.images.length - 1));
   const photo = project.images[index];
   positions.set(key, index);
-  const image = qs('#modalMainImage'); image.hidden = !photo;
-  if (photo) { image.src = photoSrc(photo); image.alt = photo.alt; }
+  const image = qs('#modalMainImage');
+  const video = qs('#modalMainVideo');
+  video.pause(); video.removeAttribute('src'); video.load();
+  image.hidden = !photo || photo.type === 'video';
+  video.hidden = photo?.type !== 'video';
+  if (photo?.type === 'video') {
+    video.src = photoSrc(photo); video.setAttribute('aria-label', photo.alt || photo.title);
+    image.removeAttribute('src');
+  } else if (photo) { image.src = photoSrc(photo); image.alt = photo.alt; }
   else { image.removeAttribute('src'); image.alt = ''; }
   let empty = qs('.photo-empty-message', qs('.modal-photo-stage'));
   if (!empty) {
     empty = document.createElement('p'); empty.className = 'photo-empty-message';
-    empty.textContent = 'No photos added.'; qs('.modal-photo-stage').append(empty);
+    empty.textContent = 'No photos or videos added.'; qs('.modal-photo-stage').append(empty);
   }
   empty.hidden = Boolean(photo);
-  qs('#modalPhotoTitle').textContent = photo?.title || 'Photo gallery';
+  qs('#modalPhotoTitle').textContent = photo?.title || 'Project media';
   qs('#modalCaption').textContent = photo?.caption || ''; qs('#modalCaption').hidden = !photo?.caption;
   qs('#modalPhotoCount').textContent = (photo ? index + 1 : 0) + ' / ' + project.images.length;
   qsa('[data-modal-step]').forEach(button => button.disabled = project.images.length < 2);
@@ -153,6 +166,7 @@ function updateModalPhoto(key) {
 function openProject(key, trigger) {
   const project = CONTENT.projects[key];
   if (!project) return;
+  pauseVideos();
   const detail = project.detail;
   if (!dialog.open) previousFocus = trigger || document.activeElement;
   dialog.dataset.project = key;
@@ -161,7 +175,7 @@ function openProject(key, trigger) {
   qs('#modalIntro').textContent = detail.intro;
   qs('#modalList').innerHTML = detail.bullets.map(item => `<li>${esc(item)}</li>`).join('');
   qs('#modalTags').innerHTML = tagsHtml(detail.tags);
-  qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show photo ${i + 1}: ${esc(photo.title)}" aria-pressed="false"><img src="${esc(photoSrc(photo))}" alt="" loading="lazy" decoding="async"><span>${i + 1}</span></button>`).join('');
+  qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show ${photo.type === 'video' ? 'video' : 'photo'} ${i + 1}: ${esc(photo.title)}" aria-pressed="false">${photo.type === 'video' ? '<span class="video-thumbnail">▶ Video</span>' : `<img src="${esc(photoSrc(photo))}" alt="" loading="lazy" decoding="async">`}<span>${i + 1}</span></button>`).join('');
   qsa('[data-modal-step]').forEach(button => button.dataset.photoProject = key);
   if (!dialog.open) {
     dialog.showModal();
@@ -171,6 +185,9 @@ function openProject(key, trigger) {
 }
 function closeProject() { dialog.close(); }
 function initInteractions() {
+  document.addEventListener('play', event => {
+    if (event.target.tagName === 'VIDEO') qsa('video').forEach(video => { if (video !== event.target) video.pause(); });
+  }, true);
   document.addEventListener('click', event => {
     const open = event.target.closest('[data-open-project]');
     if (open) { openProject(open.dataset.openProject, open); return; }
@@ -179,16 +196,16 @@ function initInteractions() {
     const thumb = event.target.closest('[data-photo-index]');
     if (thumb) { setPhoto(thumb.dataset.photoProject, Number(thumb.dataset.photoIndex)); return; }
     const card = event.target.closest('.project[data-project]');
-    if (!card || event.target.closest('a, button')) return;
+    if (!card || event.target.closest('a, button, video')) return;
     const selection = window.getSelection();
     if (selection?.type === 'Range' && card.contains(selection.anchorNode)) return;
     openProject(card.dataset.project, qs('.detail-button', card));
   });
   qs('#closeDialog').addEventListener('click', closeProject);
   dialog.addEventListener('click', event => { if (event.target === dialog) closeProject(); });
-  dialog.addEventListener('close', () => { document.body.style.overflow = ''; if (previousFocus?.isConnected) previousFocus.focus(); });
+  dialog.addEventListener('close', () => { pauseVideos(dialog); document.body.style.overflow = ''; if (previousFocus?.isConnected) previousFocus.focus(); });
   dialog.addEventListener('keydown', event => {
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (event.target.closest('video, input, textarea, select') || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();
     const key = dialog.dataset.project;
     setPhoto(key, (positions.get(key) || 0) + (event.key === 'ArrowRight' ? 1 : -1));

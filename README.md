@@ -26,3 +26,9 @@ If GitHub has changed since a draft was started, the editor stops the save to pr
 - `assets/photos/`: original project images and the supplied Manta and MERV images. SVG containers embed the original image bytes without cropping or recompressing them.
 
 Manta contains the three replacement views. MERV retains its three original pictures and includes six new gearbox, drive shaft, and tread pictures. R.O.V.E.R., IVO glasses, and the motion capture mount use their original pictures. Previous model assets are retained in Git history and are not loaded by the website.
+
+## Project videos
+
+Use **Add photos or videos** in the portfolio editor, choose a project, and select MP4 or WebM videos (up to 25 MB per video). Export MP4 with H.264 video and AAC audio for broad browser support. Photos and videos share the gallery; captions, drag ordering, delete, undo, and draft previews work for both. Videos have play, volume, seeking, and fullscreen controls and do not autoplay. Changing slides or closing the project pauses playback.
+
+New files remain in this browser's draft until **Publish to GitHub** uploads them with the project content in one commit. Videos are saved in `assets/videos/`. Downloading `content.js` saves descriptions only; publish through the editor to include uploaded files.
