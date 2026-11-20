@@ -23,6 +23,8 @@
         <label class="field"><span>Short description on the project card</span><textarea id="projectSummary" data-field="summary" rows="3"></textarea></label>
         <label class="field"><span>Full project description</span><textarea id="projectIntro" data-field="detail.intro" rows="5"></textarea></label>
         <label class="field"><span>Highlights — one bullet per line</span><textarea id="projectBullets" data-field="detail.bullets" data-list="lines" rows="6"></textarea></label>
+        <label class="field"><span>Specifications (optional) — one bullet per line</span><textarea id="projectSpecifications" data-field="detail.specifications" data-list="lines" rows="6" aria-describedby="specificationsHelp" placeholder="Hardware: ESP32 controller and dual motor driver&#10;Software: PID speed control with throttle ramping&#10;Manufacturing: FDM-printed drivetrain"></textarea></label>
+        <p id="specificationsHelp" class="help">List hardware, software features, dimensions, materials, or performance specs. Each line becomes a bullet under Specifications in the project details. Leave blank to hide the section.</p>
         <details class="more-fields"><summary>Dates, organization, labels + tags</summary>
           <label class="field"><span>Organization / role on the card</span><input data-field="cardMeta.0" type="text"></label>
           <label class="field"><span>Dates on the card</span><input data-field="cardMeta.1" type="text"></label>
@@ -76,6 +78,6 @@
     </section>
     <aside class="preview-panel" aria-label="Live portfolio preview"><div class="preview-heading"><span>Live draft preview</span><a href="index.html?preview=1#projects" target="_blank" rel="noopener">Full screen ↗</a></div><iframe id="previewFrame" title="Portfolio draft preview" src="index.html?preview=1#projects"></iframe></aside>
   </main>
-  <script src="content.js"></script><script src="content-tools.js?v=6"></script><script src="editor.js?v=10"></script>
+  <script src="content.js"></script><script src="content-tools.js?v=7"></script><script src="editor.js?v=11"></script>
 </body>
 </html>

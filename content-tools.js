@@ -16,6 +16,7 @@ window.PortfolioContentTools = (() => {
       const detail = project.detail;
       if (!detail || !['meta', 'short', 'label', 'intro'].every(key => typeof detail[key] === 'string')) return false;
       if (!stringList(detail.bullets) || !stringList(detail.tags)) return false;
+      if (detail.specifications !== undefined && !stringList(detail.specifications)) return false;
       if (!Array.isArray(project.images)) return false;
       const ids = new Set();
       return project.images.every(photo => {

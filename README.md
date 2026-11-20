@@ -32,3 +32,7 @@ Manta contains the three replacement views. MERV retains its three original pict
 Use **Add photos or videos** in the portfolio editor, choose a project, and select MP4 or WebM videos (up to 25 MB per video). Export MP4 with H.264 video and AAC audio for broad browser support. Photos and videos share the gallery; captions, drag ordering, delete, undo, and draft previews work for both. Videos have play, volume, seeking, and fullscreen controls and do not autoplay. Changing slides or closing the project pauses playback.
 
 New files remain in this browser's draft until **Publish to GitHub** uploads them with the project content in one commit. Videos are saved in `assets/videos/`. Downloading `content.js` saves descriptions only; publish through the editor to include uploaded files.
+
+## Optional project specifications
+
+Each project has a **Specifications (optional) — one bullet per line** field below Highlights in the editor. Enter hardware, software features, dimensions, materials, or performance specs on separate lines. The project details show these as a separate Specifications bullet list styled like Highlights. Leave the field blank to hide the entire section. Specifications use the same draft preview, browser recovery, download, and publishing controls as other project text.

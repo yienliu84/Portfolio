@@ -174,6 +174,9 @@ function openProject(key, trigger) {
   qs('#modalLabel').textContent = detail.label; qs('#modalTitle').textContent = project.title;
   qs('#modalIntro').textContent = detail.intro;
   qs('#modalList').innerHTML = detail.bullets.map(item => `<li>${esc(item)}</li>`).join('');
+  const specifications = (detail.specifications || []).map(item => item.trim()).filter(Boolean);
+  qs('#modalSpecifications').hidden = specifications.length === 0;
+  qs('#modalSpecificationsList').innerHTML = specifications.map(item => `<li>${esc(item)}</li>`).join('');
   qs('#modalTags').innerHTML = tagsHtml(detail.tags);
   qs('#thumbRow').innerHTML = project.images.map((photo, i) => `<button type="button" class="photo-thumb" data-photo-index="${i}" data-photo-project="${esc(key)}" aria-label="Show ${photo.type === 'video' ? 'video' : 'photo'} ${i + 1}: ${esc(photo.title)}" aria-pressed="false">${photo.type === 'video' ? '<span class="video-thumbnail">▶ Video</span>' : `<img src="${esc(photoSrc(photo))}" alt="" loading="lazy" decoding="async">`}<span>${i + 1}</span></button>`).join('');
   qsa('[data-modal-step]').forEach(button => button.dataset.photoProject = key);

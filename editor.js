@@ -145,7 +145,7 @@ function renderProject() {
   const project = content.projects[selectedProject];
   qsa('[data-field]').forEach(field => {
     const value = readPath(project, field.dataset.field);
-    field.value = field.dataset.list === 'lines' ? value.join('\n') : (value || '');
+    field.value = field.dataset.list === 'lines' ? (value || []).join('\n') : (value || '');
   });
   renderPhoto(); postPreview();
 }
