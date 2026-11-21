@@ -119,7 +119,7 @@ window.PORTFOLIO_CONTENT = {
           "id": "95c2171d-1fdc-4a9b-acb4-4b1cc73433f4",
           "src": "assets/photos/61ef93af-f69c-4df2-b533-327f7214869c.png",
           "title": "Top Down View",
-          "caption": "The Manta Gator's splined body shape is displayed. The unique 3-control-surface, 4-vertical-stabilizer design is shown. This design lets the Manta Gator perform VTOL using its vertical stabilizers.",
+          "caption": "The Manta Gator's splined body shape is displayed. The unique 3-control-surface, 4-vertical-stabilizer design is shown. This design lets the Manta Gator perform VTOL using its vertical stabilizers as launch stands.",
           "alt": ""
         },
         {
