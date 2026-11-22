@@ -98,7 +98,18 @@ window.PORTFOLIO_CONTENT = {
           "VTOL",
           "Propulsion"
         ],
-        "specifications": []
+        "specifications": [
+          "Hardware:",
+          "76.2 cm wingspan",
+          "18x9 cm access hatch",
+          "2 2S 1800 mAh 45C Lipo Batteriess (4S combined)",
+          "2 2807 1700 KV Brushless Motors",
+          "Lumenier Lux F765 Flight Controller",
+          "Lumenier Mini Razor Pro 45A ESC",
+          "Triumph M9N GPS Module",
+          "Matek Servo PDB",
+          "3 MG90S Servos"
+        ]
       },
       "images": [
         {
@@ -117,7 +128,7 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "95c2171d-1fdc-4a9b-acb4-4b1cc73433f4",
-          "src": "assets/photos/61ef93af-f69c-4df2-b533-327f7214869c.png",
+          "src": "assets/photos/ac9b7d85-81dd-4928-b055-3ce614976761.png",
           "title": "Top Down View",
           "caption": "The Manta Gator's splined body shape is displayed. The unique 3-control-surface, 4-vertical-stabilizer design is shown. This design lets the Manta Gator perform VTOL using its vertical stabilizers as launch stands.",
           "alt": ""
@@ -152,14 +163,14 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "5c69ebcd-b56d-4aa8-b9b7-df73b48f016e",
-          "src": "assets/photos/68bb5843-b5a8-480d-aed9-25ee58d959a7.png",
+          "src": "assets/photos/78c592c1-ad1c-4d55-85bb-6c50df95ed37.png",
           "title": "Servo Open Hatch View",
           "caption": "The removable, 3D-printed, spring-locked hatch provides a 17x8.5 cm region for access to electronics. The hatch also has a lip, allowing for future waterproofing via a rubber gasket.",
           "alt": ""
         },
         {
           "id": "ef14043f-a36a-4446-9687-841c8874ec7d",
-          "src": "assets/photos/1fbaa619-2421-461b-a420-33c60fe71be5.png",
+          "src": "assets/photos/05d6f0cc-fcc0-4b25-a300-492f47609796.png",
           "title": "Frame Section View",
           "caption": "The internal webbed structure in the wings and electronics layout is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
           "alt": ""
