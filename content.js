@@ -163,14 +163,14 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "5c69ebcd-b56d-4aa8-b9b7-df73b48f016e",
-          "src": "assets/photos/78c592c1-ad1c-4d55-85bb-6c50df95ed37.png",
+          "src": "assets/photos/c690345c-9a82-457c-8c0e-a3b1d46ce2e8.png",
           "title": "Servo Open Hatch View",
           "caption": "The removable, 3D-printed, spring-locked hatch provides a 17x8.5 cm region for access to electronics. The hatch also has a lip, allowing for future waterproofing via a rubber gasket.",
           "alt": ""
         },
         {
           "id": "ef14043f-a36a-4446-9687-841c8874ec7d",
-          "src": "assets/photos/05d6f0cc-fcc0-4b25-a300-492f47609796.png",
+          "src": "assets/photos/68bdb3f9-e861-433e-a47b-c15f132dbd68.png",
           "title": "Frame Section View",
           "caption": "The internal webbed structure in the wings and electronics layout is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
           "alt": ""
