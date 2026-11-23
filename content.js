@@ -102,13 +102,14 @@ window.PORTFOLIO_CONTENT = {
           "Hardware:",
           "76.2 cm wingspan",
           "18x9 cm access hatch",
-          "2 2S 1800 mAh 45C Lipo Batteriess (4S combined)",
-          "2 2807 1700 KV Brushless Motors",
+          "2x 6x3.5x3 Propellers",
+          "2x 2S 1800 mAh 45C Lipo Batteriess (4S combined)",
+          "2x 2807 1700 KV Brushless Motors",
           "Lumenier Lux F765 Flight Controller",
           "Lumenier Mini Razor Pro 45A ESC",
           "Triumph M9N GPS Module",
           "Matek Servo PDB",
-          "3 MG90S Servos"
+          "3x MG90S Servos"
         ]
       },
       "images": [
@@ -142,21 +143,21 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "4ccccece-ebde-4cec-973d-e4cbd9c1e576",
-          "src": "assets/photos/1e2c390e-0438-49a0-a6bd-f7f78dc5c354.png",
+          "src": "assets/photos/f81e91ba-7e12-4245-b139-347220e47bc9.png",
           "title": "Control Horn Section view",
           "caption": "The pushrod control surface actuation system is shown.",
           "alt": ""
         },
         {
           "id": "d2ca11de-56c3-40ad-9033-e6d173805086",
-          "src": "assets/photos/0b67af17-ac42-4c00-99a4-c108b739f06c.png",
+          "src": "assets/photos/3cc76cb4-2620-4237-a7eb-d7f5a3889d56.png",
           "title": "Vertical Stabilizer Section View",
           "caption": "The vertical stabilizer section view shows 3, 1.5 mm carbon fiber rods used for alignment, assembly, and rigidity.",
           "alt": ""
         },
         {
           "id": "2959e913-3bd1-4d30-ad20-64df175b387c",
-          "src": "assets/photos/f4bc3211-5378-4388-bc1c-d06c82db21fb.png",
+          "src": "assets/photos/28d0628f-df87-4e21-900c-d50e875bfbe3.png",
           "title": "Hinge Design",
           "caption": "The hinge clip design allows for control surfaces to be manufactured from carbon fiber, while hinges are 3D printed. The hinge clips into the control surface, and a 1.5 mm carbon fiber rod is inserted to act as a hinge line.",
           "alt": ""
@@ -170,7 +171,7 @@ window.PORTFOLIO_CONTENT = {
         },
         {
           "id": "ef14043f-a36a-4446-9687-841c8874ec7d",
-          "src": "assets/photos/68bdb3f9-e861-433e-a47b-c15f132dbd68.png",
+          "src": "assets/photos/4cd5b0c0-8ca8-49c1-9caf-3bbdb3f63431.png",
           "title": "Frame Section View",
           "caption": "The internal webbed structure in the wings and electronics layout is shown. The design uses 30-degree lines, allowing the structure to be printed without supports. Dual 6mm carbon fiber rods can be seen connecting the center to each wing, providing rigidity and alignment during assembly.",
           "alt": ""
