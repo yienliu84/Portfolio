@@ -88,7 +88,8 @@ window.PORTFOLIO_CONTENT = {
           "Running CFD in Altair FlightStream to optimize drag, weight, mass distribution, and volume constraints.",
           "Fabricating ASA flight test frames using FDM 3D printing and acetone welding.",
           "Manufacturing CNC-machined molds using Fusion 360 CAM and a 3-axis CNC mill",
-          "Fabricating carbon-fiber composite frames for Manta Gator using prepreg layup techniques."
+          "Fabricating carbon-fiber composite frames for Manta Gator using prepreg layup techniques.",
+          "Selected electrical components and built circuit through soldering and connectors."
         ],
         "tags": [
           "Fusion 360",
